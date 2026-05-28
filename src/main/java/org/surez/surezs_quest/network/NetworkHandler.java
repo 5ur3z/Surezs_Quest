@@ -2,6 +2,7 @@ package org.surez.surezs_quest.network;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -136,15 +137,15 @@ public class NetworkHandler {
                         appendItem(rewardItems, ir.iconId(), ir.item().count());
                     }
                     case QuestReward.ExperienceReward er -> {
-                        rewardText.append(er.experience()).append("经验");
+                        rewardText.append(er.experience()).append(Component.translatable("surezs_quest.reward.exp").getString());
                         appendItem(rewardItems, er.iconId(), er.experience());
                     }
                     case QuestReward.CommandReward cr -> {
-                        rewardText.append("[指令]");
+                        rewardText.append(Component.translatable("surezs_quest.reward.command").getString());
                         appendItem(rewardItems, cr.iconId(), 1);
                     }
                     case QuestReward.FunctionReward fr -> {
-                        rewardText.append("[函数]");
+                        rewardText.append(Component.translatable("surezs_quest.reward.function").getString());
                         appendItem(rewardItems, fr.iconId(), 1);
                     }
                 }

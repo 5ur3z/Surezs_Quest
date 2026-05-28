@@ -71,7 +71,7 @@ public class ClientQuestData {
             if (items.isEmpty()) {
                 for (String part : displayText.split(",")) {
                     part = part.trim();
-                    if (!part.contains("x") || part.startsWith("[") || part.contains("经验")) continue;
+                    if (!part.contains("x") || part.startsWith("[")) continue;
                     int xIdx = part.lastIndexOf('x');
                     try {
                         String id = part.substring(0, xIdx).trim();

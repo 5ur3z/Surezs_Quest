@@ -21,7 +21,7 @@ public class SubmitItemScreen extends Screen {
     private int scrollOffset;
 
     public SubmitItemScreen(ResourceLocation questId, List<OpenSubmitScreenPacket.SlotItem> items) {
-        super(Component.literal("提交物品"));
+        super(Component.translatable("surezs_quest.screen.submit_title"));
         this.questId = questId;
         this.items = items;
     }
@@ -40,7 +40,7 @@ public class SubmitItemScreen extends Screen {
     public void render(GuiGraphics gfx, int mouseX, int mouseY, float partialTick) {
         gfx.fill(0, 0, this.width, this.height, 0xFF_222222);
 
-        gfx.drawCenteredString(this.font, "选择要提交的物品", this.width / 2, 10, 0xFFFFFF);
+        gfx.drawCenteredString(this.font, Component.translatable("surezs_quest.submit.select_items").getString(), this.width / 2, 10, 0xFFFFFF);
 
         int startX = this.width / 2 - 100;
         int y = 30;
@@ -52,7 +52,7 @@ public class SubmitItemScreen extends Screen {
             int bgColor = selected ? 0xFF_446644 : 0xFF_333333;
             gfx.fill(startX, y, startX + 200, y + 20, bgColor);
 
-            String label = item.itemId().getPath() + " x" + item.count() + " (格子 " + item.slotIndex() + ")";
+            String label = item.itemId().getPath() + " x" + item.count() + String.format(Component.translatable("surezs_quest.submit.slot_label").getString(), item.slotIndex());
             gfx.drawString(this.font, label, startX + 4, y + 4, 0xFFFFFF);
 
             y += 22;
@@ -65,7 +65,7 @@ public class SubmitItemScreen extends Screen {
             int btnX1 = this.width / 2 - 30, btnX2 = this.width / 2 + 30;
             boolean hover = mouseX >= btnX1 && mouseX <= btnX2 && mouseY >= btnY && mouseY <= btnY + 20;
             gfx.fill(btnX1, btnY, btnX2, btnY + 20, hover ? 0xFF_337733 : 0xFF_226622);
-            gfx.drawCenteredString(this.font, "确认提交", this.width / 2, btnY + 4, 0xFFFFFF);
+            gfx.drawCenteredString(this.font, Component.translatable("surezs_quest.submit.confirm").getString(), this.width / 2, btnY + 4, 0xFFFFFF);
         }
 
         super.render(gfx, mouseX, mouseY, partialTick);

@@ -2,6 +2,7 @@ package org.surez.surezs_quest.screen;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.surez.surezs_quest.api.quest.Quest;
 
@@ -28,7 +29,7 @@ public class QuestListPanel {
 
         List<Quest> npcQuests = getVisibleQuests(activeId);
         if (npcQuests.isEmpty()) {
-            gfx.drawString(mc().font, "该 NPC 暂无可用任务", x + 4, y + 4, 0xFF_888888);
+            gfx.drawString(mc().font, Component.translatable("surezs_quest.npc.no_quests").getString(), x + 4, y + 4, 0xFF_888888);
             return;
         }
 
@@ -131,7 +132,7 @@ public class QuestListPanel {
                 case org.surez.surezs_quest.api.quest.QuestObjective.SubmitItems s -> s.item().getPath();
                 case org.surez.surezs_quest.api.quest.QuestObjective.KillEntity k -> k.entityType().getPath();
                 case org.surez.surezs_quest.api.quest.QuestObjective.CraftItem c -> c.item().getPath();
-                case org.surez.surezs_quest.api.quest.QuestObjective.ReachLocation r -> "到达";
+                case org.surez.surezs_quest.api.quest.QuestObjective.ReachLocation r -> Component.translatable("surezs_quest.objective.reach_location").getString();
             };
             sb.append(label).append(" ").append(cur).append("/").append(max);
         }

@@ -1,0 +1,47 @@
+{
+  "surezs_quest.status.completed": "已完成",
+  "surezs_quest.status.declined": "已拒绝",
+  "surezs_quest.status.claimable": "可领取",
+  "surezs_quest.status.in_progress": "进行中",
+  "surezs_quest.status.available": "可接取",
+
+  "surezs_quest.label.rewards": "奖励",
+  "surezs_quest.button.accept": "接受",
+  "surezs_quest.button.decline": "拒绝",
+  "surezs_quest.button.submit": "提交物品",
+  "surezs_quest.button.claim": "领取奖励",
+  "surezs_quest.button.close": "关闭",
+
+  "surezs_quest.screen.title": "任务系统",
+  "surezs_quest.screen.submit_title": "提交物品",
+
+  "surezs_quest.submit.select_items": "选择要提交的物品",
+  "surezs_quest.submit.confirm": "确认提交",
+  "surezs_quest.submit.slot_label": " (格子 %s)",
+
+  "surezs_quest.npc.no_quests": "该 NPC 暂无可用任务",
+  "surezs_quest.npc.unknown_avatar": "?",
+
+  "surezs_quest.reward.exp": "经验",
+  "surezs_quest.reward.command": "[指令]",
+  "surezs_quest.reward.function": "[函数]",
+
+  "surezs_quest.objective.submit_suffix": "(上交)",
+  "surezs_quest.objective.reach_location": "到达",
+
+  "surezs_quest.command.quest_not_found": "未找到任务: %s",
+  "surezs_quest.command.player_data_unavailable": "玩家数据不可用",
+  "surezs_quest.command.give_quest": "已将 %s 派发给 %s",
+  "surezs_quest.command.complete_quest": "已完成 %s (玩家: %s)",
+  "surezs_quest.command.reset_quest": "已清除 %s 的 %s 进度",
+  "surezs_quest.command.cascade_reset": " — 后续任务也一并重置: %s",
+  "surezs_quest.command.list_header": "=== %s 的任务列表 ===",
+  "surezs_quest.command.list_accepted": "已接受: ",
+  "surezs_quest.command.list_declined": "已拒绝: ",
+  "surezs_quest.command.list_server_accepted": "全服已接受: ",
+  "surezs_quest.command.list_server_claimed": "全服已领取: ",
+  "surezs_quest.command.reload_ok": "任务数据已从配置文件重新加载",
+  "surezs_quest.command.reset_warn": "§c将会清除 %s 的所有任务进度！使用 /quest reset %s confirm 确认",
+  "surezs_quest.command.reset_all_ok": "已清除 %s 的所有任务进度",
+  "surezs_quest.command.server_reset_ok": "已重置全服任务 %s"
+}

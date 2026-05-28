@@ -13,7 +13,7 @@ public class QuestScreen extends Screen {
     private QuestListPanel questList;
 
     public QuestScreen() {
-        super(Component.literal("任务系统"));
+        super(Component.translatable("surezs_quest.screen.title"));
     }
 
     @Override
@@ -34,7 +34,7 @@ public class QuestScreen extends Screen {
         // sidebar
         gfx.fill(0, 0, SIDEBAR_WIDTH, this.height, 0xFF_2C2C2C);
         gfx.fill(SIDEBAR_WIDTH, 0, SIDEBAR_WIDTH + 1, this.height, 0xFF_555555);
-        gfx.drawCenteredString(this.font, "任务系统", SIDEBAR_WIDTH / 2, 6, 0xFFFFFF);
+        gfx.drawCenteredString(this.font, Component.translatable("surezs_quest.screen.title").getString(), SIDEBAR_WIDTH / 2, 6, 0xFFFFFF);
         sidebar.render(gfx, mouseX, mouseY);
 
         // quest list (right panel)

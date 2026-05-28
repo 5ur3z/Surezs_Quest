@@ -58,7 +58,8 @@
       "Bash(sed -i '' '/\"check_nbt\"/d' src/main/resources/data/surezs_quest/quests/secret_weapon.json run/config/surezs_quest/quests/secret_weapon.json)",
       "Bash(sed -i '' '/\"count\": 1,/s/,$//' src/main/resources/data/surezs_quest/quests/secret_weapon.json run/config/surezs_quest/quests/secret_weapon.json)",
       "Bash(python3 -c \"import json; json.load\\(open\\('run/config/surezs_quest/quests/secret_weapon.json'\\)\\)\")",
-      "Bash(python3 -c \"import json; json.load\\(open\\('src/main/resources/data/surezs_quest/quests/secret_weapon.json'\\)\\)\")"
+      "Bash(python3 -c \"import json; json.load\\(open\\('src/main/resources/data/surezs_quest/quests/secret_weapon.json'\\)\\)\")",
+      "WebSearch"
     ]
   }
 }

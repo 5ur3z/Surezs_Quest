@@ -1,5 +1,47 @@
 {
-  "itemGroup.surezs_quest": "Example Mod Tab",
-  "block.surezs_quest.example_block": "Example Block",
-  "item.surezs_quest.example_item": "Example Item"
+  "surezs_quest.status.completed": "Completed",
+  "surezs_quest.status.declined": "Declined",
+  "surezs_quest.status.claimable": "Claimable",
+  "surezs_quest.status.in_progress": "In Progress",
+  "surezs_quest.status.available": "Available",
+
+  "surezs_quest.label.rewards": "Rewards",
+  "surezs_quest.button.accept": "Accept",
+  "surezs_quest.button.decline": "Decline",
+  "surezs_quest.button.submit": "Submit",
+  "surezs_quest.button.claim": "Claim",
+  "surezs_quest.button.close": "Close",
+
+  "surezs_quest.screen.title": "Quest System",
+  "surezs_quest.screen.submit_title": "Submit Items",
+
+  "surezs_quest.submit.select_items": "Select items to submit",
+  "surezs_quest.submit.confirm": "Confirm",
+  "surezs_quest.submit.slot_label": " (slot %s)",
+
+  "surezs_quest.npc.no_quests": "No quests available from this NPC",
+  "surezs_quest.npc.unknown_avatar": "?",
+
+  "surezs_quest.reward.exp": "EXP",
+  "surezs_quest.reward.command": "[Command]",
+  "surezs_quest.reward.function": "[Function]",
+
+  "surezs_quest.objective.submit_suffix": "(Submit)",
+  "surezs_quest.objective.reach_location": "Reach",
+
+  "surezs_quest.command.quest_not_found": "Quest not found: %s",
+  "surezs_quest.command.player_data_unavailable": "Player data not available",
+  "surezs_quest.command.give_quest": "Gave quest %s to %s",
+  "surezs_quest.command.complete_quest": "Completed quest %s for %s",
+  "surezs_quest.command.reset_quest": "Reset %s for %s",
+  "surezs_quest.command.cascade_reset": " — dependent quests also reset: %s",
+  "surezs_quest.command.list_header": "=== Quests for %s ===",
+  "surezs_quest.command.list_accepted": "Accepted: ",
+  "surezs_quest.command.list_declined": "Declined: ",
+  "surezs_quest.command.list_server_accepted": "Server Accepted: ",
+  "surezs_quest.command.list_server_claimed": "Server Claimed: ",
+  "surezs_quest.command.reload_ok": "Quest data reloaded from config",
+  "surezs_quest.command.reset_warn": "This will clear ALL quest progress for %s! Use /quest reset %s confirm to proceed",
+  "surezs_quest.command.reset_all_ok": "Cleared all quest progress for %s",
+  "surezs_quest.command.server_reset_ok": "Server quest %s has been reset"
 }
