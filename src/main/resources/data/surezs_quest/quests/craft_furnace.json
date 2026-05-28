@@ -1,0 +1,30 @@
+{
+  "id": "surezs_quest:craft_furnace",
+  "npc_id": "surezs_quest:aleksei",
+  "objectives": [
+    {
+      "type": "craft_item",
+      "item": "minecraft:furnace",
+      "count": 1
+    }
+  ],
+  "prerequisites": [],
+  "prerequisite_mode": "ALL",
+  "scope": "PLAYER",
+  "rewards": [
+    { "type": "ITEM", "item": { "id": "minecraft:coal", "count": 16 } },
+    { "type": "EXPERIENCE", "experience": 30, "icon": "minecraft:experience_bottle" }
+  ],
+  "can_reject": true,
+  "hidden": false,
+  "time_limit_ticks": 0,
+  "repeatable": false,
+  "auto_accept": false,
+  "dialogue": {
+    "give": "连个熔炉都没有怎么混？去合成一个来。",
+    "accept": "快点，我等着用。",
+    "decline": "行，那你拿什么烧矿？",
+    "in_progress": "熔炉做好了没？",
+    "complete": "这还差不多，这些煤给你烧。"
+  }
+}

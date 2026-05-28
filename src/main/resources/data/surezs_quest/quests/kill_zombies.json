@@ -1,0 +1,28 @@
+{
+  "id": "surezs_quest:kill_zombies",
+  "npc_id": "surezs_quest:aleksei",
+  "objectives": [
+    {
+      "type": "kill_entity",
+      "entity_type_id": "minecraft:zombie",
+      "count": 10
+    }
+  ],
+  "prerequisites": [],
+  "prerequisite_mode": "ALL",
+  "rewards": [
+    { "type": "ITEM", "item": { "id": "minecraft:iron_sword", "count": 1 } },
+    { "type": "EXPERIENCE", "experience": 100, "icon": "minecraft:experience_bottle" }
+  ],
+  "can_reject": true,
+  "hidden": false,
+  "time_limit_ticks": 0,
+  "repeatable": true,
+  "dialogue": {
+    "give": "附近的僵尸太多了，去清理 10 只。",
+    "accept": "很好，小心点。",
+    "decline": "害怕了？",
+    "in_progress": "还有僵尸没杀完。",
+    "complete": "干得好，这把剑给你防身。"
+  }
+}

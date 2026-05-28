@@ -1,0 +1,263 @@
+package org.surez.surezs_quest.command;
+
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import org.surez.surezs_quest.api.quest.Quest;
+import org.surez.surezs_quest.data.DataLoaders;
+import org.surez.surezs_quest.storage.QuestDataManager;
+import org.surez.surezs_quest.trigger.NPCMessageDispatcher;
+import org.surez.surezs_quest.trigger.QuestProgressManager;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class QuestCommand {
+
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(
+            Commands.literal("quest")
+                .requires(src -> src.hasPermission(2))
+                // /quest give <player> <quest_id>
+                .then(Commands.literal("give")
+                    .then(Commands.argument("player", EntityArgument.player())
+                        .then(Commands.argument("quest_id", ResourceLocationArgument.id())
+                            .suggests((ctx, builder) -> {
+                                for (var q : DataLoaders.QUESTS.getAll())
+                                    builder.suggest(q.id().toString());
+                                return builder.buildFuture();
+                            })
+                            .executes(ctx -> giveQuest(ctx, EntityArgument.getPlayer(ctx, "player"),
+                                ResourceLocationArgument.getId(ctx, "quest_id"))))))
+                // /quest complete <player> <quest_id>
+                .then(Commands.literal("complete")
+                    .then(Commands.argument("player", EntityArgument.player())
+                        .then(Commands.argument("quest_id", ResourceLocationArgument.id())
+                            .suggests((ctx, builder) -> {
+                                for (var q : DataLoaders.QUESTS.getAll())
+                                    builder.suggest(q.id().toString());
+                                return builder.buildFuture();
+                            })
+                            .executes(ctx -> completeQuest(ctx, EntityArgument.getPlayer(ctx, "player"),
+                                ResourceLocationArgument.getId(ctx, "quest_id"))))))
+                // /quest reset <player> — warn, needs confirm
+                // /quest reset <player> confirm — reset all
+                // /quest reset <player> <quest_id> — reset single
+                .then(Commands.literal("reset")
+                    .then(Commands.argument("player", EntityArgument.player())
+                        .executes(ctx -> warnResetAll(ctx, EntityArgument.getPlayer(ctx, "player")))
+                        .then(Commands.literal("confirm")
+                            .executes(ctx -> resetAllQuests(ctx, EntityArgument.getPlayer(ctx, "player"))))
+                        .then(Commands.argument("quest_id", ResourceLocationArgument.id())
+                            .suggests((ctx, builder) -> {
+                                for (var q : DataLoaders.QUESTS.getAll())
+                                    builder.suggest(q.id().toString());
+                                return builder.buildFuture();
+                            })
+                            .executes(ctx -> resetQuest(ctx, EntityArgument.getPlayer(ctx, "player"),
+                                ResourceLocationArgument.getId(ctx, "quest_id"))))))
+                // /quest list <player>
+                .then(Commands.literal("list")
+                    .then(Commands.argument("player", EntityArgument.player())
+                        .executes(ctx -> listQuests(ctx, EntityArgument.getPlayer(ctx, "player")))))
+                // /quest reload
+                .then(Commands.literal("reload")
+                    .executes(QuestCommand::reloadData))
+                // /quest server reset <quest_id>
+                .then(Commands.literal("server")
+                    .then(Commands.literal("reset")
+                        .then(Commands.argument("quest_id", ResourceLocationArgument.id())
+                            .suggests((ctx, builder) -> {
+                                for (var q : DataLoaders.QUESTS.getAll())
+                                    if (q.scope() == Quest.Scope.SERVER)
+                                        builder.suggest(q.id().toString());
+                                return builder.buildFuture();
+                            })
+                            .executes(ctx -> resetServerQuest(ctx,
+                                ResourceLocationArgument.getId(ctx, "quest_id"))))))
+        );
+    }
+
+    private static int giveQuest(CommandContext<CommandSourceStack> ctx, ServerPlayer player, ResourceLocation questId) {
+        if (!DataLoaders.QUESTS.exists(questId)) {
+            ctx.getSource().sendFailure(Component.literal("Quest not found: " + questId));
+            return 0;
+        }
+        Quest quest = DataLoaders.QUESTS.get(questId);
+        if (quest == null) return 0;
+
+        if (quest.scope() == Quest.Scope.SERVER) {
+            var serverData = QuestDataManager.INSTANCE.getServerData();
+            serverData.accept(questId, player.getUUID());
+            QuestDataManager.INSTANCE.saveServer();
+        } else {
+            var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
+            if (data == null) {
+                ctx.getSource().sendFailure(Component.literal("Player data not available"));
+                return 0;
+            }
+            data.accept(questId);
+            QuestDataManager.INSTANCE.savePlayer(player.getUUID());
+        }
+
+        NPCMessageDispatcher.sendMessage(player, quest.npcId(),
+            quest.dialogue().give(), questId);
+        ctx.getSource().sendSuccess(() -> Component.literal("Gave quest " + questId + " to " + player.getName().getString()), true);
+        return 1;
+    }
+
+    private static int completeQuest(CommandContext<CommandSourceStack> ctx, ServerPlayer player, ResourceLocation questId) {
+        Quest quest = DataLoaders.QUESTS.get(questId);
+        if (quest == null) {
+            ctx.getSource().sendFailure(Component.literal("Quest not found: " + questId));
+            return 0;
+        }
+
+        if (quest.scope() == Quest.Scope.SERVER) {
+            var serverData = QuestDataManager.INSTANCE.getServerData();
+            for (int i = 0; i < quest.objectives().size(); i++)
+                serverData.addProgress(questId, i, QuestProgressManager.getObjectiveMax(quest, i) - serverData.getProgress(questId, i));
+            serverData.markDebugComplete(questId);
+            QuestDataManager.INSTANCE.saveServer();
+        } else {
+            var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
+            if (data == null) {
+                ctx.getSource().sendFailure(Component.literal("Player data not available"));
+                return 0;
+            }
+            QuestProgressManager.forceComplete(player, data, quest);
+        }
+
+        ctx.getSource().sendSuccess(() -> Component.literal("Completed quest " + questId + " for " + player.getName().getString()), true);
+        return 1;
+    }
+
+    private static int resetQuest(CommandContext<CommandSourceStack> ctx, ServerPlayer player, ResourceLocation questId) {
+        Quest quest = DataLoaders.QUESTS.get(questId);
+
+        if (quest != null && quest.scope() == Quest.Scope.SERVER) {
+            var serverData = QuestDataManager.INSTANCE.getServerData();
+            var entry = serverData.quests().get(questId);
+            if (entry != null) {
+                entry.acceptedPlayers().remove(player.getUUID());
+                entry.declinedPlayers().remove(player.getUUID());
+                entry.completedPlayers().remove(player.getUUID());
+                entry.contributors().remove(player.getUUID());
+            }
+            QuestDataManager.INSTANCE.saveServer();
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                "Removed " + player.getName().getString() + " from server quest " + questId), true);
+            return 1;
+        }
+
+        var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
+        if (data == null) {
+            ctx.getSource().sendFailure(Component.literal("Player data not available"));
+            return 0;
+        }
+        clearQuestData(data, questId);
+
+        var cascaded = new ArrayList<String>();
+        var visited = new HashSet<ResourceLocation>();
+        visited.add(questId);
+        cascadeReset(data, questId, cascaded, visited);
+
+        QuestDataManager.INSTANCE.savePlayer(player.getUUID());
+        String msg = "Reset " + questId + " for " + player.getName().getString();
+        if (!cascaded.isEmpty()) msg += " — dependent quests also reset: " + String.join(", ", cascaded);
+        final String finalMsg = msg;
+        ctx.getSource().sendSuccess(() -> Component.literal(finalMsg), true);
+        return 1;
+    }
+
+    private static void clearQuestData(org.surez.surezs_quest.storage.PlayerQuestData data, ResourceLocation id) {
+        data.acceptedQuests().remove(id);
+        data.declinedQuests().remove(id);
+        data.completedQuests().remove(id);
+        data.objectiveProgress().remove(id);
+    }
+
+    private static void cascadeReset(org.surez.surezs_quest.storage.PlayerQuestData data,
+                                      ResourceLocation questId, List<String> cascaded, Set<ResourceLocation> visited) {
+        for (Quest q : DataLoaders.QUESTS.getAll()) {
+            if (q.prerequisites().contains(questId) && visited.add(q.id())) {
+                clearQuestData(data, q.id());
+                cascaded.add(q.id().getPath());
+                cascadeReset(data, q.id(), cascaded, visited);
+            }
+        }
+    }
+
+    private static int listQuests(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
+        var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
+        if (data == null) {
+            ctx.getSource().sendFailure(Component.literal("Player data not available"));
+            return 0;
+        }
+        ctx.getSource().sendSuccess(() -> Component.literal("=== Quests for " + player.getName().getString() + " ==="), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("Accepted: " + data.acceptedQuests()), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("Declined: " + data.declinedQuests()), false);
+
+        // show server quest state
+        var serverData = QuestDataManager.INSTANCE.getServerData();
+        var serverAccepted = new ArrayList<String>();
+        var serverClaimed = new ArrayList<String>();
+        serverData.quests().forEach((qid, entry) -> {
+            if (entry.acceptedPlayers().contains(player.getUUID())) serverAccepted.add(qid.toString());
+            if (entry.completedPlayers().contains(player.getUUID())) serverClaimed.add(qid.toString());
+        });
+        if (!serverAccepted.isEmpty())
+            ctx.getSource().sendSuccess(() -> Component.literal("Server Accepted: " + serverAccepted), false);
+        if (!serverClaimed.isEmpty())
+            ctx.getSource().sendSuccess(() -> Component.literal("Server Claimed: " + serverClaimed), false);
+        return 1;
+    }
+
+    private static int reloadData(CommandContext<CommandSourceStack> ctx) {
+        DataLoaders.reload();
+        ctx.getSource().sendSuccess(() -> Component.literal("Quest data reloaded from config"), true);
+        return 1;
+    }
+
+    private static int warnResetAll(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
+        ctx.getSource().sendSuccess(() -> Component.literal(
+            "§c将会清除 " + player.getName().getString()
+                + " 的所有任务进度！使用 /quest reset " + player.getName().getString()
+                + " confirm 确认"), false);
+        return 0;
+    }
+
+    private static int resetAllQuests(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
+        var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
+        if (data == null) {
+            ctx.getSource().sendFailure(Component.literal("Player data not available"));
+            return 0;
+        }
+        data.acceptedQuests().clear();
+        data.declinedQuests().clear();
+        data.objectiveProgress().clear();
+        data.completedQuests().clear();
+        QuestDataManager.INSTANCE.savePlayer(player.getUUID());
+        ctx.getSource().sendSuccess(() -> Component.literal(
+            "已清除 " + player.getName().getString() + " 的所有任务进度"), true);
+        return 1;
+    }
+
+    private static int resetServerQuest(CommandContext<CommandSourceStack> ctx, ResourceLocation questId) {
+        var serverData = QuestDataManager.INSTANCE.getServerData();
+        serverData.resetProgress(questId);
+        QuestDataManager.INSTANCE.saveServer();
+        ctx.getSource().sendSuccess(() -> Component.literal(
+            "已重置全服任务 " + questId), true);
+        return 1;
+    }
+}

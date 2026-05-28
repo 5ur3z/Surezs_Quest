@@ -1,0 +1,31 @@
+{
+  "id": "surezs_quest:server_collect_iron",
+  "npc_id": "surezs_quest:aleksei",
+  "scope": "SERVER",
+  "reward_mode": "PER_CONTRIBUTOR",
+  "auto_accept": false,
+  "objectives": [
+    {
+      "type": "submit_items",
+      "item": "minecraft:iron_ingot",
+      "count": 1000,
+      "consume_on_submit": true
+    }
+  ],
+  "prerequisites": [],
+  "prerequisite_mode": "ALL",
+  "rewards": [
+    { "type": "ITEM", "item": { "id": "minecraft:diamond", "count": 5 } },
+    { "type": "EXPERIENCE", "experience": 500, "icon": "minecraft:experience_bottle" }
+  ],
+  "can_reject": false,
+  "hidden": false,
+  "time_limit_ticks": 0,
+  "repeatable": true,
+  "dialogue": {
+    "give": "全服需要合力上交 1000 个铁锭！每人都能帮忙！",
+    "accept": "感谢你的加入！",
+    "in_progress": "铁锭还不够，继续努力。",
+    "complete": "1000 个铁锭上交完毕！所有人辛苦了！"
+  }
+}

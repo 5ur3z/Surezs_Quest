@@ -1,0 +1,32 @@
+{
+  "id": "surezs_quest:collect_iron",
+  "npc_id": "surezs_quest:aleksei",
+  "objectives": [
+    {
+      "type": "submit_items",
+      "item": "minecraft:iron_ingot",
+      "count": 3,
+      "consume_on_submit": true
+    }
+  ],
+  "prerequisites": [],
+  "prerequisite_mode": "ALL",
+  "scope": "PLAYER",
+  "rewards": [
+    { "type": "ITEM", "item": { "id": "minecraft:emerald", "count": 2 } },
+    { "type": "ITEM", "item": { "id": "minecraft:diamond_sword", "count": 1 } },
+    { "type": "EXPERIENCE", "experience": 50, "icon": "minecraft:experience_bottle" }
+  ],
+  "can_reject": true,
+  "hidden": false,
+  "time_limit_ticks": 0,
+  "repeatable": false,
+  "auto_accept": false,
+  "dialogue": {
+    "give": "外面人手不够，去给我找 3 个铁锭来。找到后点提交交给我。",
+    "accept": "好，尽快。",
+    "decline": "那你来找我干嘛？",
+    "in_progress": "铁锭还没凑齐吗？",
+    "complete": "不错，就是这些。"
+  }
+}
