@@ -26,5 +26,8 @@ logs/
 docs/
 DESIGN.md
 
+# Claude
+.claude/
+
 # Secrets
 *.env

@@ -5,8 +5,7 @@
     {
       "type": "submit_items",
       "item": "minecraft:iron_ingot",
-      "count": 3,
-      "consume_on_submit": true
+      "count": 3
     }
   ],
   "prerequisites": [],

@@ -13,16 +13,14 @@ public sealed interface QuestObjective {
 
     record SubmitItems(
         ResourceLocation item,
-        int count,
-        boolean consumeOnSubmit
+        int count
     ) implements QuestObjective {
         public String type() { return "submit_items"; }
 
         public static final MapCodec<SubmitItems> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                 ResourceLocation.CODEC.fieldOf("item").forGetter(SubmitItems::item),
-                Codec.INT.fieldOf("count").forGetter(SubmitItems::count),
-                Codec.BOOL.optionalFieldOf("consume_on_submit", true).forGetter(SubmitItems::consumeOnSubmit)
+                Codec.INT.fieldOf("count").forGetter(SubmitItems::count)
             ).apply(instance, SubmitItems::new)
         );
     }
@@ -31,16 +29,14 @@ public sealed interface QuestObjective {
 
     record FindItems(
         ResourceLocation item,
-        int count,
-        boolean checkNbt
+        int count
     ) implements QuestObjective {
         public String type() { return "find_items"; }
 
         public static final MapCodec<FindItems> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                 ResourceLocation.CODEC.fieldOf("item").forGetter(FindItems::item),
-                Codec.INT.fieldOf("count").forGetter(FindItems::count),
-                Codec.BOOL.optionalFieldOf("check_nbt", false).forGetter(FindItems::checkNbt)
+                Codec.INT.fieldOf("count").forGetter(FindItems::count)
             ).apply(instance, FindItems::new)
         );
     }

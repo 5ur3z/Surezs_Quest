@@ -3,7 +3,6 @@ package org.surez.surezs_quest.api.quest;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
@@ -19,14 +18,12 @@ public sealed interface QuestReward {
 
     record ItemStackSpec(
         ResourceLocation id,
-        int count,
-        CompoundTag nbt
+        int count
     ) {
         public static final MapCodec<ItemStackSpec> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                 ResourceLocation.CODEC.fieldOf("id").forGetter(ItemStackSpec::id),
-                Codec.INT.fieldOf("count").forGetter(ItemStackSpec::count),
-                CompoundTag.CODEC.optionalFieldOf("nbt", new CompoundTag()).forGetter(ItemStackSpec::nbt)
+                Codec.INT.fieldOf("count").forGetter(ItemStackSpec::count)
             ).apply(instance, ItemStackSpec::new)
         );
     }

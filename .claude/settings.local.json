@@ -54,7 +54,11 @@
       "Bash(sed -n '71,73p' src/main/java/org/surez/surezs_quest/screen/QuestCardWidget.java)",
       "Bash(sed -n '73p' src/main/java/org/surez/surezs_quest/trigger/handlers/QuestChainHandler.java)",
       "Bash(sed -n '41p' src/main/java/org/surez/surezs_quest/network/ClientNetworkHandler.java)",
-      "Bash(sed -n '162p' src/main/java/org/surez/surezs_quest/network/NetworkHandler.java)"
+      "Bash(sed -n '162p' src/main/java/org/surez/surezs_quest/network/NetworkHandler.java)",
+      "Bash(sed -i '' '/\"check_nbt\"/d' src/main/resources/data/surezs_quest/quests/secret_weapon.json run/config/surezs_quest/quests/secret_weapon.json)",
+      "Bash(sed -i '' '/\"count\": 1,/s/,$//' src/main/resources/data/surezs_quest/quests/secret_weapon.json run/config/surezs_quest/quests/secret_weapon.json)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('run/config/surezs_quest/quests/secret_weapon.json'\\)\\)\")",
+      "Bash(python3 -c \"import json; json.load\\(open\\('src/main/resources/data/surezs_quest/quests/secret_weapon.json'\\)\\)\")"
     ]
   }
 }

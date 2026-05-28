@@ -26,8 +26,8 @@ public class ClientQuestData {
             List<QuestObjective> objectives = new ArrayList<>();
             for (var objInfo : info.objectives()) {
                 QuestObjective obj = switch (objInfo.type()) {
-                    case "find_items" -> new QuestObjective.FindItems(objInfo.item(), objInfo.count(), false);
-                    case "submit_items" -> new QuestObjective.SubmitItems(objInfo.item(), objInfo.count(), true);
+                    case "find_items" -> new QuestObjective.FindItems(objInfo.item(), objInfo.count());
+                    case "submit_items" -> new QuestObjective.SubmitItems(objInfo.item(), objInfo.count());
                     case "kill_entity" -> new QuestObjective.KillEntity(objInfo.item(), objInfo.count());
                     case "craft_item" -> new QuestObjective.CraftItem(objInfo.item(), objInfo.count());
                     default -> new QuestObjective.ReachLocation(objInfo.item(), 0, 0, 0, 5);
