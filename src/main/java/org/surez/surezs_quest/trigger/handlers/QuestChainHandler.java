@@ -6,13 +6,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.slf4j.Logger;
-import org.surez.surezs_quest.api.npc.NPC;
 import org.surez.surezs_quest.api.quest.Quest;
 import org.surez.surezs_quest.data.DataLoaders;
 import org.surez.surezs_quest.storage.PlayerQuestData;
 import org.surez.surezs_quest.storage.QuestDataManager;
 import org.surez.surezs_quest.network.packet.QuestVisibilityUpdatePacket;
-import org.surez.surezs_quest.trigger.NPCMessageDispatcher;
 import org.surez.surezs_quest.trigger.QuestCompletedEvent;
 import org.surez.surezs_quest.trigger.QuestProgressManager;
 
@@ -36,17 +34,10 @@ public class QuestChainHandler {
             if (!q.prerequisites().contains(completedId)) continue;
             if (!prerequisitesMet(q, data)) continue;
 
-            NPC npc = DataLoaders.NPCS.get(q.npcId());
-            String npcName = npc != null ? npc.id().getPath() : q.npcId().getPath();
-
             if (q.autoAccept()) {
                 data.accept(q.id());
-                NPCMessageDispatcher.sendMessage(player, q.npcId(),
-                    "[" + npcName + "] " + q.dialogue().give(), q.id());
                 LOGGER.info("[Chain] Quest {} auto-unlocked for {}", q.id(), player.getName().getString());
             } else {
-                NPCMessageDispatcher.sendMessage(player, q.npcId(),
-                    "[" + npcName + "] " + q.dialogue().give(), q.id());
                 LOGGER.info("[Chain] Branch quest {} offered to {}", q.id(), player.getName().getString());
             }
         }
@@ -54,7 +45,7 @@ public class QuestChainHandler {
         // notify client about newly visible hidden quests
         var newlyVisible = new ArrayList<ResourceLocation>();
         for (Quest q : DataLoaders.QUESTS.getAll()) {
-            if (!q.hidden() || q.prerequisites().isEmpty()) continue;
+            if (q.prerequisites().isEmpty()) continue;
             if (!q.prerequisites().contains(completedId)) continue;
             if (data.isAccepted(q.id()) || data.isDeclined(q.id()) || data.isCompleted(q.id())) continue;
             if (!prerequisitesMet(q, data)) continue;
@@ -70,12 +61,22 @@ public class QuestChainHandler {
         if (quest.prerequisites().isEmpty()) return true;
 
         long met = quest.prerequisites().stream()
-            .filter(data::isCompleted)
+            .filter(prereqId -> isQuestCompleted(prereqId, data))
             .count();
 
         return switch (quest.prerequisiteMode()) {
             case ALL -> met == quest.prerequisites().size();
             case ANY -> met > 0;
         };
+    }
+
+    private static boolean isQuestCompleted(ResourceLocation questId, PlayerQuestData data) {
+        Quest q = DataLoaders.QUESTS.get(questId);
+        if (q == null) return false;
+        for (int i = 0; i < q.objectives().size(); i++) {
+            int max = QuestProgressManager.getObjectiveMax(q, i);
+            if (data.getProgress(questId, i) < max) return false;
+        }
+        return !q.objectives().isEmpty();
     }
 }

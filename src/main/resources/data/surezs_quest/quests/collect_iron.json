@@ -17,7 +17,6 @@
     { "type": "EXPERIENCE", "experience": 50, "icon": "minecraft:experience_bottle" }
   ],
   "can_reject": true,
-  "hidden": false,
   "time_limit_ticks": 0,
   "repeatable": false,
   "auto_accept": false,

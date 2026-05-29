@@ -37,7 +37,7 @@ public class NetworkHandler {
         // -- C→S packets ----------------------------------------------------------
         registrar.playToServer(
             RequestOpenQuestScreenPacket.TYPE, RequestOpenQuestScreenPacket.STREAM_CODEC,
-            (packet, ctx) -> ctx.enqueueWork(() -> handleOpenScreen(packet, ctx.player()))
+            (packet, ctx) -> ctx.enqueueWork(() -> refreshQuestScreen(ctx.player()))
         );
         registrar.playToServer(
             AcceptQuestPacket.TYPE, AcceptQuestPacket.STREAM_CODEC,
@@ -63,9 +63,9 @@ public class NetworkHandler {
 
     // -- Screen handler ---------------------------------------------------------
 
-    private static void handleOpenScreen(RequestOpenQuestScreenPacket packet, net.minecraft.world.entity.player.Player player) {
+    public static void refreshQuestScreen(net.minecraft.world.entity.player.Player player) {
         if (!(player instanceof ServerPlayer sp)) return;
-        var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
+        var data = QuestDataManager.INSTANCE.getPlayerData(sp.getUUID());
         if (data == null) return;
 
         var npcIds = new ArrayList<>(DataLoaders.NPCS.getAll().stream().map(npc -> npc.id()).toList());
@@ -150,21 +150,30 @@ public class NetworkHandler {
                     }
                 }
             }
-            byte flags = (byte)((q.canReject() ? 1 : 0) | (q.hidden() ? 2 : 0));
+            byte flags = (byte)(q.canReject() ? 1 : 0);
             String fullDesc = q.dialogue().give() + "\0"
                 + q.dialogue().accept() + "\0"
                 + q.dialogue().decline() + "\0"
                 + q.dialogue().complete();
             String rewardStr = rewardText + (rewardItems.isEmpty() ? "" : "||" + rewardItems);
+            var texts = new OpenQuestScreenPacket.TextData(rewardStr, fullDesc);
             questInfos.add(new OpenQuestScreenPacket.QuestInfo(
-                q.id(), q.npcId(), objs, flags, rewardStr, fullDesc));
+                q.id(), q.npcId(), objs, q.prerequisites(), flags, texts));
         }
 
         // hidden quests whose prerequisites are all met → visible
         var visibleHidden = new ArrayList<ResourceLocation>();
         for (Quest q : DataLoaders.QUESTS.getAll()) {
-            if (q.hidden() && !q.prerequisites().isEmpty()
-                && q.prerequisites().stream().allMatch(data::isCompleted)) {
+            if (!q.prerequisites().isEmpty()
+                && q.prerequisites().stream().allMatch(prereqId -> {
+                    Quest prereq = DataLoaders.QUESTS.get(prereqId);
+                    if (prereq == null) return false;
+                    for (int i = 0; i < prereq.objectives().size(); i++) {
+                        int max = QuestProgressManager.getObjectiveMax(prereq, i);
+                        if (data.getProgress(prereqId, i) < max) return false;
+                    }
+                    return !prereq.objectives().isEmpty();
+                })) {
                 visibleHidden.add(q.id());
             }
         }
@@ -259,12 +268,14 @@ public class NetworkHandler {
             org.surez.surezs_quest.reward.QuestRewardDispatcher.grantRewards(quest, player, data, true);
             serverData.markCompleted(packet.questId(), player.getUUID());
             QuestDataManager.INSTANCE.saveServer();
+            refreshQuestScreen(player);
             LOGGER.debug("Player {} claimed server quest {}", player.getName().getString(), packet.questId());
         } else {
             if (data.isCompleted(packet.questId())) return;
             org.surez.surezs_quest.reward.QuestRewardDispatcher.grantRewards(quest, player, data);
             data.acceptedQuests().remove(packet.questId());
             QuestDataManager.INSTANCE.savePlayer(player.getUUID());
+            refreshQuestScreen(player);
         }
     }
 

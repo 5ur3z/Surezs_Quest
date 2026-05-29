@@ -44,8 +44,4 @@ public class JsonServerDataStore implements IServerDataStore {
         }
     }
 
-    @Override
-    public void saveAsync(ServerQuestData data) {
-        new Thread(() -> save(data), "QuestServerDataSave").start();
-    }
 }

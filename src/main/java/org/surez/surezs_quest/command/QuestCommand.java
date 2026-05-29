@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import org.surez.surezs_quest.api.quest.Quest;
 import org.surez.surezs_quest.data.DataLoaders;
+import org.surez.surezs_quest.network.NetworkHandler;
 import org.surez.surezs_quest.storage.QuestDataManager;
-import org.surez.surezs_quest.trigger.NPCMessageDispatcher;
 import org.surez.surezs_quest.trigger.QuestProgressManager;
 
 import java.util.ArrayList;
@@ -109,8 +109,6 @@ public class QuestCommand {
             QuestDataManager.INSTANCE.savePlayer(player.getUUID());
         }
 
-        NPCMessageDispatcher.sendMessage(player, quest.npcId(),
-            quest.dialogue().give(), questId);
         ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.give_quest", questId.toString(), player.getName().getString()), true);
         return 1;
     }
@@ -171,6 +169,10 @@ public class QuestCommand {
         cascadeReset(data, questId, cascaded, visited);
 
         QuestDataManager.INSTANCE.savePlayer(player.getUUID());
+
+        // full refresh of client state after reset
+        NetworkHandler.refreshQuestScreen(player);
+
         String msg = Component.translatable("surezs_quest.command.reset_quest", player.getName().getString(), questId.toString()).getString();
         if (!cascaded.isEmpty()) msg += Component.translatable("surezs_quest.command.cascade_reset", String.join(", ", cascaded)).getString();
         final String finalMsg = msg;
@@ -179,10 +181,7 @@ public class QuestCommand {
     }
 
     private static void clearQuestData(org.surez.surezs_quest.storage.PlayerQuestData data, ResourceLocation id) {
-        data.acceptedQuests().remove(id);
-        data.declinedQuests().remove(id);
-        data.completedQuests().remove(id);
-        data.objectiveProgress().remove(id);
+        data.clearQuest(id);
     }
 
     private static void cascadeReset(org.surez.surezs_quest.storage.PlayerQuestData data,
@@ -238,10 +237,7 @@ public class QuestCommand {
             ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.player_data_unavailable"));
             return 0;
         }
-        data.acceptedQuests().clear();
-        data.declinedQuests().clear();
-        data.objectiveProgress().clear();
-        data.completedQuests().clear();
+        data.clear();
         QuestDataManager.INSTANCE.savePlayer(player.getUUID());
         ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.reset_all_ok", player.getName().getString()), true);
         return 1;

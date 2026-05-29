@@ -13,7 +13,6 @@ public class ClientQuestDataCache {
     private final Set<ResourceLocation> acceptedQuests = new HashSet<>();
     private final Map<ResourceLocation, Map<Integer, Integer>> progress = new HashMap<>();
     private ResourceLocation activeNpcId;
-    private boolean serverQuestsVisible;
 
     private ClientQuestDataCache() {}
 
@@ -42,7 +41,6 @@ public class ClientQuestDataCache {
     }
     public boolean isAccepted(ResourceLocation id) { return acceptedQuests.contains(id); }
     public void addAccepted(ResourceLocation id) { acceptedQuests.add(id); }
-    public void removeAccepted(ResourceLocation id) { acceptedQuests.remove(id); }
 
     public boolean areObjectivesMet(ResourceLocation questId) {
         var q = ClientQuestData.get(questId);
@@ -71,27 +69,14 @@ public class ClientQuestDataCache {
     public ResourceLocation activeNpcId() { return activeNpcId; }
     public void setActiveNpcId(ResourceLocation id) { this.activeNpcId = id; }
 
-    // -- server quests -------------------------------------------------------
-
-    public boolean serverQuestsVisible() { return serverQuestsVisible; }
-    public void setServerQuestsVisible(boolean v) { this.serverQuestsVisible = v; }
-
     // -- submit items --------------------------------------------------------
 
     private ResourceLocation pendingSubmitQuestId;
     private List<OpenSubmitScreenPacket.SlotItem> pendingSubmitItems = List.of();
 
-    public ResourceLocation pendingSubmitQuestId() { return pendingSubmitQuestId; }
-    public List<OpenSubmitScreenPacket.SlotItem> pendingSubmitItems() { return pendingSubmitItems; }
-
     public void setPendingSubmit(ResourceLocation questId, List<OpenSubmitScreenPacket.SlotItem> items) {
         this.pendingSubmitQuestId = questId;
         this.pendingSubmitItems = List.copyOf(items);
-    }
-
-    public void clearPendingSubmit() {
-        pendingSubmitQuestId = null;
-        pendingSubmitItems = List.of();
     }
 
     // -- pending quest cards (offered but not yet accepted) -------------------
@@ -111,6 +96,13 @@ public class ClientQuestDataCache {
     public void setVisibleHiddenQuests(Set<ResourceLocation> ids) { visibleHiddenQuests.clear(); visibleHiddenQuests.addAll(ids); }
     public Set<ResourceLocation> visibleHiddenQuests() { return visibleHiddenQuests; }
     public void addVisibleHiddenQuests(List<ResourceLocation> ids) { visibleHiddenQuests.addAll(ids); }
+    public void removeVisibleHiddenQuest(ResourceLocation id) { visibleHiddenQuests.remove(id); }
+
+    public void clearQuestState(ResourceLocation id) {
+        acceptedQuests.remove(id);
+        declinedQuests.remove(id);
+        progress.remove(id);
+    }
 
     // -- clear ---------------------------------------------------------------
 
@@ -125,7 +117,6 @@ public class ClientQuestDataCache {
         acceptedQuests.clear();
         progress.clear();
         activeNpcId = null;
-        serverQuestsVisible = false;
     }
 
 }

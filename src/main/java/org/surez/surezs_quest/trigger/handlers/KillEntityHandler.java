@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.surez.surezs_quest.api.quest.Quest;
 import org.surez.surezs_quest.api.quest.QuestObjective;
 import org.surez.surezs_quest.api.trigger.QuestTrigger;
-import org.surez.surezs_quest.data.DataLoaders;
 import org.surez.surezs_quest.storage.PlayerQuestData;
 import org.surez.surezs_quest.trigger.ITriggerHandler;
 import org.surez.surezs_quest.trigger.QuestProgressManager;
@@ -39,23 +38,18 @@ public class KillEntityHandler implements ITriggerHandler<QuestTrigger.EntityKil
 
     @Override
     public void handle(QuestTrigger.EntityKill trigger, Player player, PlayerQuestData data) {
-        int matched = 0;
-        for (var questId : data.acceptedQuests()) {
-            Quest quest = DataLoaders.QUESTS.get(questId);
-            if (quest == null) continue;
-
-            for (int i = 0; i < quest.objectives().size(); i++) {
-                if (quest.objectives().get(i) instanceof QuestObjective.KillEntity kill) {
-                    if (kill.entityType().equals(trigger.entityType())) {
-                        int current = data.getProgress(questId, i) + 1;
-                        QuestProgressManager.updateProgress(player, data, questId, i, current);
-                        LOGGER.info("[Kill] Quest {} obj {} matched: {}/{}",
-                            questId, i, current, kill.count());
-                        matched++;
-                    }
+        final int[] matched = {0};
+        AcceptedObjectiveWalker.forEach(data, match -> {
+            if (match.objective() instanceof QuestObjective.KillEntity kill) {
+                if (kill.entityType().equals(trigger.entityType())) {
+                    int current = data.getProgress(match.questId(), match.objectiveIndex()) + 1;
+                    QuestProgressManager.updateProgress(player, data, match.questId(), match.objectiveIndex(), current);
+                    LOGGER.info("[Kill] Quest {} obj {} matched: {}/{}",
+                        match.questId(), match.objectiveIndex(), current, kill.count());
+                    matched[0]++;
                 }
             }
-        }
-        if (matched > 0) LOGGER.info("[Kill] {} objectives matched", matched);
+        });
+        if (matched[0] > 0) LOGGER.info("[Kill] {} objectives matched", matched[0]);
     }
 }

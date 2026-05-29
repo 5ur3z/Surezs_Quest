@@ -97,8 +97,8 @@ public class QuestListPanel {
         var cache = ClientQuestDataCache.INSTANCE;
         for (Quest q : ClientQuestData.getAll()) {
             if (!q.npcId().equals(npcId)) continue;
-            // hide quests marked hidden, unless player has already interacted
-            if (ClientQuestData.isHidden(q.id())
+            // hide quests with prerequisites, unless player has interacted or prereqs met
+            if (!q.prerequisites().isEmpty()
                 && !cache.isAccepted(q.id())
                 && !cache.isVisibleHidden(q.id())
                 && !cache.isDeclined(q.id())
@@ -108,35 +108,6 @@ public class QuestListPanel {
             result.add(q);
         }
         return result;
-    }
-
-    private boolean isCompletedLocally(Quest quest) {
-        var cache = ClientQuestDataCache.INSTANCE;
-        for (int i = 0; i < quest.objectives().size(); i++) {
-            int max = QuestCardWidget.objectiveMax(quest.objectives().get(i));
-            if (cache.getProgress(quest.id(), i) < max) return false;
-        }
-        return quest.objectives().isEmpty() ? false : cache.isAccepted(quest.id());
-    }
-
-    private String getProgressLine(Quest quest) {
-        var cache = ClientQuestDataCache.INSTANCE;
-        if (!cache.isAccepted(quest.id())) return "";
-        var sb = new StringBuilder();
-        for (int i = 0; i < quest.objectives().size(); i++) {
-            if (i > 0) sb.append(" | ");
-            int max = QuestCardWidget.objectiveMax(quest.objectives().get(i));
-            int cur = cache.getProgress(quest.id(), i);
-            String label = switch (quest.objectives().get(i)) {
-                case org.surez.surezs_quest.api.quest.QuestObjective.FindItems f -> f.item().getPath();
-                case org.surez.surezs_quest.api.quest.QuestObjective.SubmitItems s -> s.item().getPath();
-                case org.surez.surezs_quest.api.quest.QuestObjective.KillEntity k -> k.entityType().getPath();
-                case org.surez.surezs_quest.api.quest.QuestObjective.CraftItem c -> c.item().getPath();
-                case org.surez.surezs_quest.api.quest.QuestObjective.ReachLocation r -> Component.translatable("surezs_quest.objective.reach_location").getString();
-            };
-            sb.append(label).append(" ").append(cur).append("/").append(max);
-        }
-        return sb.toString();
     }
 
     private static net.minecraft.client.Minecraft mc() {

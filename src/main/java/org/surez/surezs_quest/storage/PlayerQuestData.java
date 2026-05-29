@@ -47,6 +47,13 @@ public class PlayerQuestData {
 
     // -- helpers -------------------------------------------------------------
 
+    public void clearQuest(ResourceLocation id) {
+        acceptedQuests.remove(id);
+        declinedQuests.remove(id);
+        completedQuests.remove(id);
+        objectiveProgress.remove(id);
+    }
+
     public void clear() {
         acceptedQuests.clear();
         declinedQuests.clear();

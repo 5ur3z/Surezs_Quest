@@ -14,14 +14,14 @@ public class ClientQuestData {
     private static final Map<ResourceLocation, List<ItemRewardInfo>> rewardItems = new HashMap<>();
 
     public record ItemRewardInfo(ResourceLocation itemId, int count) {}
-    private static final Map<ResourceLocation, Boolean> hiddenQuests = new HashMap<>();
     private static final Map<ResourceLocation, String[]> descriptions = new HashMap<>();
 
     /** Called by the client when it receives quest data from the server */
     public static void loadFromServer(List<OpenQuestScreenPacket.QuestInfo> infos) {
         quests.clear();
         rewardTexts.clear();
-        hiddenQuests.clear();
+        rewardItems.clear();
+        descriptions.clear();
         for (var info : infos) {
             List<QuestObjective> objectives = new ArrayList<>();
             for (var objInfo : info.objectives()) {
@@ -35,18 +35,18 @@ public class ClientQuestData {
                 objectives.add(obj);
             }
             Quest quest = new Quest(
-                info.id(), info.npcId(), objectives, List.of(),
+                info.id(), info.npcId(), objectives, info.prerequisites(),
                 Quest.PrerequisiteMode.ALL,
                 Quest.Scope.PLAYER,
                 List.of(),
                 Quest.RewardMode.PER_CONTRIBUTOR,
-                info.canReject(), false, false, true, 0,
+                info.canReject(), false, true, 0,
                 new Quest.Dialogue("", "", "", "", "")
             );
             quests.put(quest.id(), quest);
 
             // Parse reward text for display + item icons
-            String raw = info.rewardText();
+            String raw = info.texts().rewardText();
             String displayText;
             List<ItemRewardInfo> items = new ArrayList<>();
 
@@ -84,9 +84,7 @@ public class ClientQuestData {
 
             rewardTexts.put(quest.id(), displayText);
             rewardItems.put(quest.id(), items);
-            if (items.size() > 0) System.out.println("[RewardParse] " + quest.id() + " items=" + items.size() + " raw=" + info.rewardText());
-            hiddenQuests.put(quest.id(), info.hidden());
-            String[] parts = info.description().split("\0", -1);
+            String[] parts = info.texts().description().split("\0", -1);
             descriptions.put(quest.id(), parts.length >= 4 ? parts : new String[]{"", "", "", ""});
         }
     }
@@ -94,7 +92,6 @@ public class ClientQuestData {
     public static Quest get(ResourceLocation id) { return quests.get(id); }
     public static Collection<Quest> getAll() { return quests.values(); }
     public static String getRewardText(ResourceLocation id) { return rewardTexts.getOrDefault(id, ""); }
-    public static boolean isHidden(ResourceLocation id) { return hiddenQuests.getOrDefault(id, false); }
     public static List<ItemRewardInfo> getRewardItems(ResourceLocation id) { return rewardItems.getOrDefault(id, List.of()); }
 
     /** dialogue.give — quest description shown in expanded card */

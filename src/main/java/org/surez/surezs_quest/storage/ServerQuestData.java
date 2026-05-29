@@ -2,7 +2,7 @@ package org.surez.surezs_quest.storage;
 
 import net.minecraft.resources.ResourceLocation;
 import org.surez.surezs_quest.api.quest.Quest;
-import org.surez.surezs_quest.trigger.QuestProgressManager;
+import org.surez.surezs_quest.api.quest.QuestObjectiveUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,13 +47,9 @@ public class ServerQuestData {
         var e = quests.get(id);
         if (e == null || quest.objectives().isEmpty()) return false;
         for (int i = 0; i < quest.objectives().size(); i++) {
-            if (e.progress().getOrDefault(i, 0) < getObjectiveMax(quest, i)) return false;
+            if (e.progress().getOrDefault(i, 0) < QuestObjectiveUtils.maxProgress(quest, i)) return false;
         }
         return true;
-    }
-
-    private static int getObjectiveMax(Quest quest, int i) {
-        return QuestProgressManager.getObjectiveMax(quest, i);
     }
 
     // -- accepted players ----------------------------------------------------

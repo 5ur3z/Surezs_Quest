@@ -22,13 +22,9 @@ public class Config {
 
     // -- config values ---------------------------------------------------------
 
-    private boolean serverQuestsEnabled = true;
-    private boolean serverQuestsGuiVisible = true;
     private int autoSaveIntervalSeconds = 30;
     private int locationCheckIntervalTicks = 20;
 
-    public boolean serverQuestsEnabled() { return serverQuestsEnabled; }
-    public boolean serverQuestsGuiVisible() { return serverQuestsGuiVisible; }
     public int autoSaveIntervalSeconds() { return autoSaveIntervalSeconds; }
     public int locationCheckIntervalTicks() { return locationCheckIntervalTicks; }
 
@@ -42,10 +38,6 @@ public class Config {
             try {
                 String json = Files.readString(config.configFile);
                 JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-                if (root.has("server_quests_enabled"))
-                    config.serverQuestsEnabled = root.get("server_quests_enabled").getAsBoolean();
-                if (root.has("server_quests_gui_visible"))
-                    config.serverQuestsGuiVisible = root.get("server_quests_gui_visible").getAsBoolean();
                 if (root.has("auto_save_interval_seconds"))
                     config.autoSaveIntervalSeconds = root.get("auto_save_interval_seconds").getAsInt();
                 if (root.has("location_check_interval_ticks"))
@@ -62,8 +54,6 @@ public class Config {
 
     public void save() {
         JsonObject root = new JsonObject();
-        root.addProperty("server_quests_enabled", serverQuestsEnabled);
-        root.addProperty("server_quests_gui_visible", serverQuestsGuiVisible);
         root.addProperty("auto_save_interval_seconds", autoSaveIntervalSeconds);
         root.addProperty("location_check_interval_ticks", locationCheckIntervalTicks);
 

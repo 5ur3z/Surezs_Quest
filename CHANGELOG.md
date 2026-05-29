@@ -8,10 +8,34 @@
 
 ---
 
-## [0.7.0] — 2026-05-28
+## [0.7.2] — 2026-05-29
 
-### 新增
-- **多语言支持（简体中文 / English）**：38+ 处硬编码文本改为 Minecraft 标准 `Component.translatable(key)`，创建 `zh_cn.json` 和 `en_us.json` 语言文件。GUI 状态标签、按钮、命令反馈、奖励类型标签全部跟随玩家客户端语言自动切换
+### 修复
+- **前置任务完成后后置任务不实时刷新**：`QuestChainHandler.prerequisitesMet()` 和 `NetworkHandler.refreshQuestScreen()` 的 `visibleHidden` 计算都用 `data.isCompleted()` 判断前置是否完成，但 `isCompleted` 仅在领取奖励时设为 true，而 `QuestCompletedEvent` 在目标达成时就触发——导致事件驱动的可见性更新永远拿不到正确结果。修复：两处改为遍历前置任务所有 objective 的 `data.getProgress()` 与 `max` 比对（新增 `isQuestCompleted` 辅助方法），目标进度全部达标即视为前置已完成
+- **领奖后 GUI 不刷新**：`handleClaim` 领奖时调用 `grantRewards()` → `data.markCompleted()`，但无任何事件通知或客户端刷新 → 两个分支末尾各加 `refreshQuestScreen(player)` 全量推送最新状态
+
+---
+
+## [0.7.1] — 2026-05-29
+
+### 修复
+- **前置任务未完成后置任务仍显示**：`OpenQuestScreenPacket.QuestInfo` 未携带 `prerequisites` 字段，客户端重建 `Quest` 对象时 `prerequisites` 被硬编码为空列表 → `QuestListPanel.getVisibleQuests()` 前置条件检查永远不生效。修复：`QuestInfo` 新增 `prerequisites` 字段，`rewardText`+`description` 合并为 `TextData` 子记录（NeoForge StreamCodec 最多 6 字段限制）
+- **重置前置任务后后置任务不隐藏**：`QuestCommand.resetQuest()` 的 `cascadeReset` 已递归重置后续任务，但客户端缓存未清理 → 新增 `NetworkHandler.refreshQuestScreen()` 全量刷新调用。`QuestVisibilityUpdatePacket` 新增 `removedIds` 字段，客户端收到后清除对应 `visibleHidden` 及 `acceptedQuests`/`declinedQuests`/`progress`
+
+### 变更
+- **`hidden` 字段移除，改为前置条件驱动可见性**：`Quest.hidden` 字段与 `prerequisites` 功能重叠 → 删除 `hidden` 字段。无前置条件的任务始终可见，有前置条件的任务在前置完成前自动隐藏。`QuestInfo.flags` 字节 bit 1 含义从 `hidden` 改为保留位。`QuestChainHandler` 可见性扫描移除 `!q.hidden()` 条件。所有 JSON 任务文件移除 `"hidden": true/false` 行
+- **全服任务状态标签修正**：`handleOpenScreen` 中全服任务"可接取"不再错误加入 `accepted` 列表
+
+### 移除
+- **`NPCMessageDialog` 及 5 个调用点**：Phase 8 GUI 重构后客户端处理器为空操作，服务端仍在发送无意义的 NPC 消息包 → 删除整个 `NPCMessageDispatcher` 类及 `QuestDataManager` 中全部调用
+- **`Config` 死字段**：`serverQuestsEnabled`、`serverQuestsGuiVisible` 从未被运行时代码读取 → 移除
+- **`IPlayerDataStore`/`IServerDataStore`/`JsonPlayerDataStore`/`JsonServerDataStore` 空方法**：接口及实现中残留的 `getAllPlayerIds` 等无实现方法 → 移除
+- **`LocationHandler` 硬编码 tick 间隔**：改用 `Config.INSTANCE.locationCheckIntervalTicks()`
+
+### 优化
+- **Handler 循环去重**：`InventoryHandler`、`KillEntityHandler`、`CraftHandler`、`LocationHandler` 各自遍历已接任务的循环逻辑（~100 行重复代码）提取为 `AcceptedObjectiveWalker` 共享遍历器。新增 `TickerGate` 限流工具类
+- **Manager 泛型化**：`QuestManager` 和 `NPCManager` 各自的 `Map` + `get`/`getAll`/`exists`/`load` 重复实现合并为泛型 `DefinitionManager<T>`，两个原始类改为类型别名。新增 `JsonDefinitionLoader` 统一 JSON 加载逻辑
+- **`QuestDataManager` 保存回调**：`IPlayerDataStore`/`IServerDataStore` 的 `getAllPlayerIds` 空方法清理；`QuestProgressManager` 中全服任务进度检查的 `serverData` 参数类型从 `Object` 强转为正式类型
 
 ---
 

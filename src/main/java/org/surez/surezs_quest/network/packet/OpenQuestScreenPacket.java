@@ -32,25 +32,33 @@ public record OpenQuestScreenPacket(
         );
     }
 
+    /** Bundled display strings (avoids exceeding 6-field StreamCodec limit) */
+    public record TextData(String rewardText, String description) {
+        static final StreamCodec<FriendlyByteBuf, TextData> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, TextData::rewardText,
+            ByteBufCodecs.STRING_UTF8, TextData::description,
+            TextData::new
+        );
+    }
+
     /** Lightweight quest summary sent from server to client */
     public record QuestInfo(
         ResourceLocation id,
         ResourceLocation npcId,
         List<ObjectiveInfo> objectives,
-        byte flags, // bit 0: canReject, bit 1: hidden
-        String rewardText,
-        String description
+        List<ResourceLocation> prerequisites,
+        byte flags, // bit 0: canReject
+        TextData texts
     ) {
         public boolean canReject() { return (flags & 1) != 0; }
-        public boolean hidden() { return (flags & 2) != 0; }
 
         static final StreamCodec<FriendlyByteBuf, QuestInfo> STREAM_CODEC = StreamCodec.composite(
             ResourceLocation.STREAM_CODEC, QuestInfo::id,
             ResourceLocation.STREAM_CODEC, QuestInfo::npcId,
             ObjectiveInfo.STREAM_CODEC.apply(ByteBufCodecs.list()), QuestInfo::objectives,
+            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()), QuestInfo::prerequisites,
             ByteBufCodecs.BYTE, QuestInfo::flags,
-            ByteBufCodecs.STRING_UTF8, QuestInfo::rewardText,
-            ByteBufCodecs.STRING_UTF8, QuestInfo::description,
+            TextData.STREAM_CODEC, QuestInfo::texts,
             QuestInfo::new
         );
     }

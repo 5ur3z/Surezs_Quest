@@ -59,7 +59,21 @@
       "Bash(sed -i '' '/\"count\": 1,/s/,$//' src/main/resources/data/surezs_quest/quests/secret_weapon.json run/config/surezs_quest/quests/secret_weapon.json)",
       "Bash(python3 -c \"import json; json.load\\(open\\('run/config/surezs_quest/quests/secret_weapon.json'\\)\\)\")",
       "Bash(python3 -c \"import json; json.load\\(open\\('src/main/resources/data/surezs_quest/quests/secret_weapon.json'\\)\\)\")",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git remote *)",
+      "Bash(ls -la CLAUDE.md AGENTS.md)",
+      "Bash(ls -la CONTEXT.md CONTEXT-MAP.md)",
+      "Bash(ls -la docs/adr/)",
+      "Bash(ls -la docs/agents/)",
+      "Bash(gh issue create --title '删除 hidden 字段，可见性由 prerequisites 自动推断' --body ' *)",
+      "Bash(gh issue comment 1 --body ' *)",
+      "Bash(grep -rn \"\\\\.hidden\\(\\)\\\\|isHidden\\\\|hiddenQuests\\\\|\\\\.hidden,\" src/main/java/ --include=\"*.java\")",
+      "Bash(python3 -c \"import json; [json.load\\(open\\(f'run/config/surezs_quest/quests/{q}'\\)\\) for q in ['collect_iron.json','kill_zombies.json','secret_weapon.json','server_collect_iron.json','craft_furnace.json','server_collect_diamond.json']]\")",
+      "Bash(open *)",
+      "Bash(gh issue create --title '清理死代码：空 packet handler + 死 Config 字段 + LocationHandler 忽略配置' --body ' *)",
+      "Bash(gh issue comment 2 --body ' *)",
+      "Bash(gh issue *)",
+      "Bash(git checkout *)"
     ]
   }
 }

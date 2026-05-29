@@ -56,9 +56,4 @@ public class JsonPlayerDataStore implements IPlayerDataStore {
         }
     }
 
-    @Override
-    public void saveAsync(UUID playerUuid, PlayerQuestData data) {
-        // Simple async: run on a background thread (will be replaced by proper executor in Phase 2)
-        new Thread(() -> save(playerUuid, data), "QuestDataSave-" + playerUuid).start();
-    }
 }

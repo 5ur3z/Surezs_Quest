@@ -18,7 +18,6 @@ public class SubmitItemScreen extends Screen {
     private final ResourceLocation questId;
     private final List<OpenSubmitScreenPacket.SlotItem> items;
     private final Set<Integer> selectedSlots = new HashSet<>();
-    private int scrollOffset;
 
     public SubmitItemScreen(ResourceLocation questId, List<OpenSubmitScreenPacket.SlotItem> items) {
         super(Component.translatable("surezs_quest.screen.submit_title"));
@@ -44,7 +43,6 @@ public class SubmitItemScreen extends Screen {
 
         int startX = this.width / 2 - 100;
         int y = 30;
-        int index = 0;
         for (var item : items) {
             if (y > this.height - 50) break;
 
@@ -56,7 +54,6 @@ public class SubmitItemScreen extends Screen {
             gfx.drawString(this.font, label, startX + 4, y + 4, 0xFFFFFF);
 
             y += 22;
-            index++;
         }
 
         // confirm button with hover

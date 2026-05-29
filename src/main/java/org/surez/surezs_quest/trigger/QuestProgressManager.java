@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.slf4j.Logger;
 import org.surez.surezs_quest.api.quest.Quest;
+import org.surez.surezs_quest.api.quest.QuestObjectiveUtils;
 import org.surez.surezs_quest.data.DataLoaders;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.surez.surezs_quest.api.quest.Quest.Scope;
@@ -141,14 +142,6 @@ public class QuestProgressManager {
     }
 
     public static int getObjectiveMax(Quest quest, int index) {
-        if (index < 0 || index >= quest.objectives().size()) return 1;
-        var obj = quest.objectives().get(index);
-        return switch (obj) {
-            case org.surez.surezs_quest.api.quest.QuestObjective.ReachLocation r -> 1;
-            case org.surez.surezs_quest.api.quest.QuestObjective.FindItems f -> f.count();
-            case org.surez.surezs_quest.api.quest.QuestObjective.SubmitItems s -> s.count();
-            case org.surez.surezs_quest.api.quest.QuestObjective.KillEntity k -> k.count();
-            case org.surez.surezs_quest.api.quest.QuestObjective.CraftItem c -> c.count();
-        };
+        return QuestObjectiveUtils.maxProgress(quest, index);
     }
 }

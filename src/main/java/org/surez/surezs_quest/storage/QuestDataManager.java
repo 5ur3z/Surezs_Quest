@@ -8,9 +8,7 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.slf4j.Logger;
 
 import org.surez.surezs_quest.api.quest.Quest;
-import net.minecraft.server.level.ServerPlayer;
 import org.surez.surezs_quest.data.DataLoaders;
-import org.surez.surezs_quest.trigger.NPCMessageDispatcher;
 import org.surez.surezs_quest.trigger.TriggerRegistry;
 
 import java.nio.file.Path;
@@ -57,7 +55,6 @@ public class QuestDataManager {
         LOGGER.debug("Loaded quest data for player {}", uuid);
 
         // auto-accept quests with no prerequisites and auto_accept=true
-        var player = event.getEntity();
         boolean serverModified = false;
         for (Quest q : DataLoaders.QUESTS.getAll()) {
             if (!q.autoAccept() || !q.prerequisites().isEmpty()) continue;
@@ -69,15 +66,11 @@ public class QuestDataManager {
                     || serverData.hasPlayerCompleted(q.id(), uuid)) continue;
                 serverData.accept(q.id(), uuid);
                 serverModified = true;
-                if (player instanceof ServerPlayer sp)
-                    NPCMessageDispatcher.sendMessage(sp, q.npcId(), q.dialogue().give(), q.id());
             } else {
                 if (data.isAccepted(q.id()) || data.isDeclined(q.id())
                     || data.isCompleted(q.id())) continue;
                 data.accept(q.id());
                 playerStore.save(uuid, data);
-                if (player instanceof ServerPlayer sp)
-                    NPCMessageDispatcher.sendMessage(sp, q.npcId(), q.dialogue().give(), q.id());
             }
         }
         if (serverModified) saveServer();

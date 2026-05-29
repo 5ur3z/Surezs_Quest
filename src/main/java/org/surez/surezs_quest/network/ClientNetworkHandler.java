@@ -52,24 +52,15 @@ public class ClientNetworkHandler {
                     packet.questId(), packet.objectiveIndex(), packet.progress()))
         );
 
-        // Quest completed
-        registrar.playToClient(
-            QuestCompletedPacket.TYPE, QuestCompletedPacket.STREAM_CODEC,
-            (packet, ctx) -> ctx.enqueueWork(() ->
-{})
-        );
-
-        // NPC message — only tracks attached quest cards (chat removed in Phase 8)
-        registrar.playToClient(
-            NPCMessagePacket.TYPE, NPCMessagePacket.STREAM_CODEC,
-            (packet, ctx) -> ctx.enqueueWork(() -> {})
-        );
-
         // Quest visibility update
         registrar.playToClient(
             QuestVisibilityUpdatePacket.TYPE, QuestVisibilityUpdatePacket.STREAM_CODEC,
             (packet, ctx) -> ctx.enqueueWork(() -> {
                 ClientQuestDataCache.INSTANCE.addVisibleHiddenQuests(packet.questIds());
+                packet.removedIds().forEach(id -> {
+                    ClientQuestDataCache.INSTANCE.removeVisibleHiddenQuest(id);
+                    ClientQuestDataCache.INSTANCE.clearQuestState(id);
+                });
             })
         );
 

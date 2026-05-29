@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.surez.surezs_quest.api.quest.Quest;
 import org.surez.surezs_quest.api.quest.QuestObjective;
+import org.surez.surezs_quest.api.quest.QuestObjectiveUtils;
 import org.surez.surezs_quest.network.packet.*;
 
 import java.util.List;
@@ -49,13 +50,7 @@ public class QuestCardWidget {
     private static final Map<ResourceLocation, Integer> renderedCardW = new java.util.HashMap<>();
 
     public static int objectiveMax(QuestObjective obj) {
-        return switch (obj) {
-            case QuestObjective.FindItems f -> f.count();
-            case QuestObjective.SubmitItems s -> s.count();
-            case QuestObjective.ReachLocation r -> 1;
-            case QuestObjective.KillEntity k -> k.count();
-            case QuestObjective.CraftItem c -> c.count();
-        };
+        return QuestObjectiveUtils.maxProgress(obj);
     }
 
     public static int getHeight(ResourceLocation questId) {
@@ -73,7 +68,6 @@ public class QuestCardWidget {
         boolean declined = cache.isDeclined(quest.id());
 
         String desc = ClientQuestData.getDescription(quest.id());
-        String rewardTxt = ClientQuestData.getRewardText(quest.id());
         int descLines = desc.isEmpty() ? 0 : wrapLines(desc, 240).size();
 
         int h = 32; // title bar
@@ -223,7 +217,6 @@ public class QuestCardWidget {
             for (var ri : rewardItemList) {
                 var item = BuiltInRegistries.ITEM.get(ri.itemId());
                 if (item == null) {
-                    System.out.println("[RewardCell] item not found: " + ri.itemId());
                     continue;
                 }
                 int cw = cellWidth(font, ri.count());
@@ -407,10 +400,6 @@ public class QuestCardWidget {
 
     private static boolean hit(double mx, double my, int bx, int by, int bw, int bh) {
         return mx >= bx && mx <= bx + bw && my >= by && my <= by + bh;
-    }
-
-    private static boolean isCompleted(Quest quest) {
-        return ClientQuestDataCache.INSTANCE.areObjectivesMet(quest.id());
     }
 
     private static String progressLine(Quest quest) {
