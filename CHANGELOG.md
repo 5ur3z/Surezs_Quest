@@ -8,6 +8,32 @@
 
 ---
 
+## [0.8.0] — 2026-05-30
+
+### 新增
+- **Web 任务编辑器**：内嵌 HTTP 服务器（`com.sun.net.httpserver`，零依赖），通过浏览器编辑 `config/surezs_quest/` 下的任务和 NPC JSON 文件。`/quest editor [port]` 启动，`/quest reload` 使修改生效。绑定 `127.0.0.1` 仅本地访问，默认端口 17080，Config 中 `web_editor_port` 控制自动启动
+- **REST API**：`GET /api/quests`（精简列表，剥离 objectives/rewards/dialogue 重型字段，向前兼容）、`GET /api/quests/{id}`（完整 JSON 对象，为表单编辑预留）、`PUT /api/quests/{id}`（保存，100KB 上限 + JSON 语法校验 + 路径穿越防护）、`GET /api/npcs`（只读列表）
+- **表单化编辑器**：7 个区块覆盖全部 13 个 Quest 字段。5 种 Objective type / 4 种 Reward type 动态增删 + type 切换。Prerequisites select+add 模式。Reward icon 显隐切换。Scope 切换时 Mode 自动显隐。Form ↔ Raw JSON 双向切换不丢数据
+- **液态玻璃亮色主题**：Apple Liquid Glass 风格，`backdrop-filter: blur` 毛玻璃 header/sidebar/card，淡蓝 (`#3b82c4`) 主题色，Pico.css 原生表单控件
+- **Quest JSON Schema 文档**：`docs/quest-json-schema.md`
+
+### 变更
+- **`OpenQuestScreenPacket.QuestInfo` 新增 `prerequisites` 字段**：`rewardText`+`description` 合并为 `TextData` 子记录（NeoForge 6 字段 StreamCodec 限制）。客户端 `ClientQuestData` 现在正确收到前置任务信息，`QuestListPanel.getVisibleQuests()` 前置条件检查生效
+- **`GET /api/quests/{id}` 返回 JSON 对象**（原返回原始字符串），为表单编辑预留字段级访问
+- **Config 新增 `web_editor_port`**（默认 0 禁用）
+
+### 修复
+- **API handler 编码**：`body.getBytes()` → `StandardCharsets.UTF_8`，修复含中文 quest JSON 的编码异常
+- **Quest 文件查找**：`getQuest()` 新增 `resolveQuestFile()`，先按完整 ID 查找，失败后剥离命名空间前缀（`surezs_quest:collect_iron` → `collect_iron.json`）
+- **Pico.css 集成**：移除对 radio/checkbox 的 padding/border/background 干扰，设置 `--pico-primary` 等衍生变量修复选中态颜色
+
+### 文件
+- 新增 `web/` 包：`QuestWebServer.java`、`StaticFileHandler.java`、`QuestApiHandler.java`、`NpcApiHandler.java`
+- 新增 `resources/web/`：`index.html`、`app.js`、`forms.js`、`pico.min.css`
+- 修改 `Config.java`、`Surezs_quest.java`、`QuestCommand.java`、`OpenQuestScreenPacket.java`、`NetworkHandler.java`、`ClientQuestData.java`
+
+---
+
 ## [0.7.2] — 2026-05-29
 
 ### 修复

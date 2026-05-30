@@ -1,6 +1,7 @@
 package org.surez.surezs_quest.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -9,12 +10,16 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.fml.loading.FMLPaths;
+import org.surez.surezs_quest.Config;
+import org.surez.surezs_quest.Surezs_quest;
 import org.surez.surezs_quest.api.quest.Quest;
 import org.surez.surezs_quest.data.DataLoaders;
 import org.surez.surezs_quest.network.NetworkHandler;
 import org.surez.surezs_quest.storage.QuestDataManager;
 import org.surez.surezs_quest.trigger.QuestProgressManager;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -72,6 +77,11 @@ public class QuestCommand {
                 // /quest reload
                 .then(Commands.literal("reload")
                     .executes(QuestCommand::reloadData))
+                // /quest editor [port] — start web editor
+                .then(Commands.literal("editor")
+                    .executes(ctx -> startEditor(ctx, -1))
+                    .then(Commands.argument("port", IntegerArgumentType.integer(1024, 65535))
+                        .executes(ctx -> startEditor(ctx, IntegerArgumentType.getInteger(ctx, "port")))))
                 // /quest server reset <quest_id>
                 .then(Commands.literal("server")
                     .then(Commands.literal("reset")
@@ -249,5 +259,30 @@ public class QuestCommand {
         QuestDataManager.INSTANCE.saveServer();
         ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.server_reset_ok", questId.toString()), true);
         return 1;
+    }
+
+    private static int startEditor(CommandContext<CommandSourceStack> ctx, int port) {
+        if (Surezs_quest.WEB_SERVER.isRunning()) {
+            ctx.getSource().sendSuccess(() ->
+                Component.literal("Web editor is already running"), false);
+            return 0;
+        }
+        int actualPort = port > 0 ? port : Config.INSTANCE.webEditorPort();
+        if (actualPort <= 0) actualPort = 17080;
+
+        Path configDir = FMLPaths.CONFIGDIR.get().resolve(Surezs_quest.MODID);
+        try {
+            Surezs_quest.WEB_SERVER.start(actualPort,
+                configDir.resolve("quests"),
+                configDir.resolve("npcs"));
+            int p = actualPort;
+            ctx.getSource().sendSuccess(() ->
+                Component.literal("Web editor started at http://localhost:" + p), true);
+            return 1;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(
+                Component.literal("Failed to start web editor: " + e.getMessage()));
+            return 0;
+        }
     }
 }

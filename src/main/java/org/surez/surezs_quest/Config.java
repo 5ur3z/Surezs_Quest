@@ -24,9 +24,11 @@ public class Config {
 
     private int autoSaveIntervalSeconds = 30;
     private int locationCheckIntervalTicks = 20;
+    private int webEditorPort = 0;  // 0 = disabled
 
     public int autoSaveIntervalSeconds() { return autoSaveIntervalSeconds; }
     public int locationCheckIntervalTicks() { return locationCheckIntervalTicks; }
+    public int webEditorPort() { return webEditorPort; }
 
     // -- load / save -----------------------------------------------------------
 
@@ -42,6 +44,8 @@ public class Config {
                     config.autoSaveIntervalSeconds = root.get("auto_save_interval_seconds").getAsInt();
                 if (root.has("location_check_interval_ticks"))
                     config.locationCheckIntervalTicks = root.get("location_check_interval_ticks").getAsInt();
+                if (root.has("web_editor_port"))
+                    config.webEditorPort = root.get("web_editor_port").getAsInt();
             } catch (IOException e) {
                 LOGGER.warn("Failed to load config, using defaults: {}", e.getMessage());
             }
@@ -56,6 +60,7 @@ public class Config {
         JsonObject root = new JsonObject();
         root.addProperty("auto_save_interval_seconds", autoSaveIntervalSeconds);
         root.addProperty("location_check_interval_ticks", locationCheckIntervalTicks);
+        root.addProperty("web_editor_port", webEditorPort);
 
         try {
             Files.createDirectories(configFile.getParent());
