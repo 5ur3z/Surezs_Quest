@@ -1,11 +1,14 @@
 let formData = null;
+let formTarget = '#editor-body'; // '#editor-body' (quest editor) or '#editor-area' (NPCs tab)
+let formViewMode = 'form'; // 'form' or 'raw'
 
 // ── Form view ────────────────────────────────────────────────────────
 async function openQuestForm(id) {
+  formTarget = '#editor-area';
   currentQuestId = id;
   const resp = await fetch('/api/quests/' + id);
   if (!resp.ok) {
-    $('#editor-area').innerHTML = '<p class="empty-state">Failed to load quest.</p>';
+    document.querySelector(formTarget).innerHTML = '<p class="empty-state">Failed to load quest.</p>';
     return;
   }
   formData = await resp.json();
@@ -16,8 +19,8 @@ async function openQuestForm(id) {
     fetch('/api/quests').then(r => r.json())
   ]);
 
-  const html = buildFormHtml(formData, npcs, quests);
-  $('#editor-area').innerHTML = html;
+  const html = buildFormHtml(formData, npcs, quests, true);
+  document.querySelector(formTarget).innerHTML = html;
 
   // scope change → toggle Mode visibility
   document.querySelectorAll('input[name="scope"]').forEach(r => {
@@ -27,23 +30,59 @@ async function openQuestForm(id) {
     });
   });
 
+  // prerequisite_mode change → toggle prereq rows visibility
+  document.querySelectorAll('input[name="prerequisite_mode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isNone = r.value === 'NONE';
+      const addRow = document.getElementById('prereq-add-row');
+      const rows = document.getElementById('prereq-rows');
+      if (addRow) addRow.style.display = isNone ? 'none' : '';
+      if (rows) rows.style.display = isNone ? 'none' : '';
+    });
+  });
+
+  // Initial state: hide prereq rows if NONE mode
+  if (document.querySelector('input[name="prerequisite_mode"]:checked')?.value === 'NONE') {
+    const addRow = document.getElementById('prereq-add-row');
+    const rows = document.getElementById('prereq-rows');
+    if (addRow) addRow.style.display = 'none';
+    if (rows) rows.style.display = 'none';
+  }
+
   // sidebar active
   $$('.sidebar-item').forEach(b => b.classList.toggle('active', b.textContent === id));
 }
 
-function buildFormHtml(data, npcs, quests) {
+function buildFormHtml(data, npcs, quests, showToolbar, questLineNames, allQuestLineNames) {
+  if (showToolbar === undefined) showToolbar = true;
+  if (questLineNames === undefined) questLineNames = [];
+  if (allQuestLineNames === undefined) allQuestLineNames = [];
   const npcOpts = npcs.map(n => `<option value="${n.id}" ${n.id === data.npc_id ? 'selected' : ''}>${n.id}</option>`).join('');
   const prereqIds = data.prerequisites || [];
 
   const objRows = (data.objectives || []).map(o => buildObjectiveRow(o)).join('');
   const rewRows = (data.rewards || []).map(r => buildRewardRow(r)).join('');
 
-  return `
-<div class="breadcrumb">${data.id}</div>
+  const qlCheckboxes = allQuestLineNames.map(name => {
+    const checked = questLineNames.includes(name) ? ' checked' : '';
+    return `<div class="flag-group"><label><input type="checkbox" name="questline" value="${esc(name)}"${checked}> ${esc(name)}</label></div>`;
+  }).join('');
 
+  const toolbar = showToolbar ? `
+<div class="toolbar">
+  <button class="btn-save" onclick="saveForm()">Save</button>
+  <span class="save-msg" id="save-msg"></span>
+  <button class="btn-raw" onclick="switchToRaw()">Raw JSON</button>
+</div>` : '';
+
+  return `
 <div class="form-section"><h3 class="section-title">Identity</h3>
   <div class="form-row"><span class="form-label">ID</span><input name="id" value="${data.id}"></div>
   <div class="form-row"><span class="form-label">NPC</span><select name="npc_id">${npcOpts}</select></div>
+</div>
+
+<div class="form-section"><h3 class="section-title">Quest Lines</h3>
+  ${qlCheckboxes || '<p class="empty-state">No quest lines defined</p>'}
 </div>
 
 <div class="form-section"><h3 class="section-title">Scope</h3>
@@ -63,17 +102,18 @@ function buildFormHtml(data, npcs, quests) {
 </div>
 
 <div class="form-section"><h3 class="section-title">Prerequisites</h3>
-  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="ALL" ${data.prerequisite_mode !== 'ANY' ? 'checked' : ''}> ALL</label></div>
+  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="ALL" ${data.prerequisite_mode !== 'ANY' && data.prerequisite_mode !== 'NONE' ? 'checked' : ''}> ALL</label></div>
   <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="ANY" ${data.prerequisite_mode === 'ANY' ? 'checked' : ''}> ANY</label></div>
+  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="NONE" ${data.prerequisite_mode === 'NONE' ? 'checked' : ''}> NONE</label></div>
   <div id="prereq-rows">${renderPrereqRows(prereqIds)}</div>
-  <div class="form-row" style="margin-top:6px">
+  <div id="prereq-add-row" class="form-row" style="margin-top:6px">
     <select id="prereq-select">${quests.filter(q => q.id !== data.id && !prereqIds.includes(q.id)).map(q => `<option value="${q.id}">${q.id}</option>`).join('')}</select>
     <button class="btn-add" onclick="addPrereq()" ${quests.filter(q => q.id !== data.id && !prereqIds.includes(q.id)).length === 0 ? 'disabled' : ''}>+ Add</button>
   </div>
 </div>
 
 <div class="form-section"><h3 class="section-title">Timing</h3>
-  <div class="form-row"><span class="form-label">Time limit</span><input type="number" name="time_limit_ticks" value="${data.time_limit_ticks || 0}" min="0"><small>ticks</small></div>
+  <div class="form-row"><span class="form-label">Time limit</span><input type="number" name="time_limit_ticks" value="${data.time_limit_ticks || 0}" min="0" style="flex:0 0 100px"><span style="font-size:0.78rem;color:var(--text-dim);flex-shrink:0">ticks</span></div>
 </div>
 
 <div class="form-section"><h3 class="section-title">Objectives</h3>
@@ -94,11 +134,7 @@ function buildFormHtml(data, npcs, quests) {
   <div class="form-row"><span class="form-label">Complete</span><textarea name="dlg_complete" rows="2">${esc(data.dialogue?.complete || '')}</textarea></div>
 </div>
 
-<div class="toolbar">
-  <button class="btn-save" onclick="saveForm()">Save</button>
-  <span class="save-msg" id="save-msg"></span>
-  <button class="btn-raw" onclick="switchToRaw()">Raw JSON</button>
-</div>
+${toolbar}
 `;
 }
 
@@ -160,7 +196,7 @@ function rewFields(rw) {
 
 // ── Prerequisites add/remove ──────────────────────────────────────────
 function renderPrereqRows(ids) {
-  if (!ids || ids.length === 0) return '<p class="empty-state">None</p>';
+  if (!ids || ids.length === 0) return '';
   return ids.map(id => `<div class="prereq-row" data-id="${id}"><span>${id}</span><button class="btn-del" onclick="delPrereq(this)">−</button></div>`).join('');
 }
 
@@ -194,7 +230,7 @@ function delPrereq(btn) {
   row.remove();
   // show empty state if no rows left
   if (!document.querySelector('.prereq-row')) {
-    $('#prereq-rows').innerHTML = '<p class="empty-state">None</p>';
+    $('#prereq-rows').innerHTML = '';
   }
 }
 
@@ -298,7 +334,7 @@ function serializeForm() {
     time_limit_ticks: parseInt(el('[name="time_limit_ticks"]').value) || 0,
     objectives: objRows,
     rewards: rewRows,
-    prerequisites: [...document.querySelectorAll('.prereq-row')].map(r => r.dataset.id),
+    prerequisites: radio('prerequisite_mode') === 'NONE' ? [] : [...document.querySelectorAll('.prereq-row')].map(r => r.dataset.id),
     dialogue: {
       give: el('[name="dlg_give"]').value,
       accept: el('[name="dlg_accept"]').value,
@@ -310,67 +346,150 @@ function serializeForm() {
 }
 
 async function saveForm() {
-  const obj = serializeForm();
+  let obj;
+  if (formViewMode === 'raw') {
+    const raw = $('#json-editor').value;
+    try {
+      obj = JSON.parse(raw);
+    } catch (e) {
+      const msg = $('#editor-save-msg');
+      if (msg) {
+        msg.textContent = 'Invalid JSON: ' + e.message;
+        msg.className = 'save-msg err';
+      }
+      return false;
+    }
+  } else {
+    obj = serializeForm();
+  }
+
   try {
     const raw = JSON.stringify(obj, null, 2);
-    // client-side validation: parse back to verify
-    JSON.parse(raw);
     const newId = obj.id;
-    const resp = await fetch('/api/quests/' + newId, { method: 'PUT', body: raw });
-    const msg = $('#save-msg');
-    if (resp.ok) {
-      if (newId !== currentQuestId) {
-        currentQuestId = newId;
-        formData.id = newId;
-        $('.breadcrumb').textContent = newId;
+    const isNew = currentQuestId === '__new__';
+
+    // Conflict detection for new quests
+    if (isNew) {
+      const exists = allQuests.some(q => q.id === newId);
+      if (exists && !confirm('Quest "' + newId + '" already exists. Overwrite it?')) {
+        return false;
       }
-      msg.textContent = 'Saved! Run /quest reload in-game.';
-      msg.className = 'save-msg ok';
-      setTimeout(() => { msg.textContent = ''; }, 5000);
+    }
+
+    const resp = await fetch('/api/quests/' + newId, { method: 'PUT', body: raw });
+    const msg = $('#editor-save-msg');
+    if (resp.ok) {
+      if (newId !== currentQuestId || isNew) {
+        currentQuestId = newId;
+        if (typeof formData !== 'undefined') formData.id = newId;
+      }
+      // Update the editor title to reflect the real quest ID
+      const titleEl = $('#editor-title');
+      if (titleEl) titleEl.textContent = newId;
+      if (msg) {
+        msg.textContent = 'Saved! Run /quest reload in-game.';
+        msg.className = 'save-msg ok';
+        setTimeout(() => { if (msg) msg.textContent = ''; }, 5000);
+      }
+      // sync quest line membership
+      if (typeof QuestLineStore !== 'undefined') {
+        const checkedLines = [...document.querySelectorAll('input[name="questline"]:checked')].map(c => c.value);
+        const allLines = QuestLineStore.getAll();
+        const currentLines = Object.keys(allLines).filter(name => {
+          const quests = allLines[name];
+          return quests && quests.includes(newId);
+        });
+        for (const line of checkedLines) {
+          if (!currentLines.includes(line)) {
+            await QuestLineStore.addQuest(line, newId);
+          }
+        }
+        for (const line of currentLines) {
+          if (!checkedLines.includes(line)) {
+            await QuestLineStore.removeQuest(line, newId);
+          }
+        }
+      }
+      return true;
     } else {
-      msg.textContent = 'Save failed.';
-      msg.className = 'save-msg err';
+      if (msg) {
+        msg.textContent = 'Save failed.';
+        msg.className = 'save-msg err';
+      }
+      return false;
     }
   } catch (e) {
-    const msg = $('#save-msg');
-    msg.textContent = 'Serialization error: ' + e.message;
-    msg.className = 'save-msg err';
+    const msg = $('#editor-save-msg');
+    if (msg) {
+      msg.textContent = 'Serialization error: ' + e.message;
+      msg.className = 'save-msg err';
+    }
+    return false;
   }
 }
 
 // ── View switching ─────────────────────────────────────────────────────
 function switchToRaw() {
+  formViewMode = 'raw';
   const obj = serializeForm();
   currentQuestId = obj.id;
   const jsonText = JSON.stringify(obj, null, 2);
-  $('#editor-area').innerHTML = ''
+  document.querySelector(formTarget).innerHTML = ''
     + '<div class="breadcrumb">' + currentQuestId + '</div>'
-    + '<textarea id="json-editor">' + esc(jsonText) + '</textarea>'
-    + '<div class="toolbar">'
-    + '  <button class="btn-save" onclick="saveQuest()">Save</button>'
-    + '  <span class="save-msg" id="save-msg"></span>'
-    + '  <button class="btn-raw" onclick="switchToForm()">Form</button>'
-    + '</div>';
+    + '<textarea id="json-editor">' + esc(jsonText) + '</textarea>';
+
+  // Toggle footer button to "Form"
+  const rawBtn = $('#editor-raw');
+  if (rawBtn) {
+    rawBtn.textContent = 'Form';
+    rawBtn.onclick = () => { if (typeof switchToForm === 'function') switchToForm(); };
+  }
 }
 
 function switchToForm() {
+  formViewMode = 'form';
   const raw = $('#json-editor').value;
   try {
     formData = JSON.parse(raw);
-    openQuestForm(currentQuestId); // re-render from formData (but fetch again for NPC/quest lists)
-    // actually re-fetch: we already have formData, just need to rebuild
     rebuildForm();
+    // Toggle footer button back to "Raw JSON"
+    const rawBtn = $('#editor-raw');
+    if (rawBtn) {
+      rawBtn.textContent = 'Raw JSON';
+      rawBtn.onclick = () => { if (typeof switchToRaw === 'function') switchToRaw(); };
+    }
   } catch (e) {
     alert('Invalid JSON: ' + e.message);
   }
 }
 
 async function rebuildForm() {
+  formViewMode = 'form';
   const [npcs, quests] = await Promise.all([
     fetch('/api/npcs').then(r => r.json()),
     fetch('/api/quests').then(r => r.json())
   ]);
-  $('#editor-area').innerHTML = buildFormHtml(formData, npcs, quests);
+  const showToolbar = formTarget === '#editor-area';
+  document.querySelector(formTarget).innerHTML = buildFormHtml(formData, npcs, quests, showToolbar);
+
+  // prerequisite_mode change → toggle prereq rows visibility
+  document.querySelectorAll('input[name="prerequisite_mode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isNone = r.value === 'NONE';
+      const addRow = document.getElementById('prereq-add-row');
+      const rows = document.getElementById('prereq-rows');
+      if (addRow) addRow.style.display = isNone ? 'none' : '';
+      if (rows) rows.style.display = isNone ? 'none' : '';
+    });
+  });
+
+  // Initial state: hide prereq rows if NONE mode
+  if (document.querySelector('input[name="prerequisite_mode"]:checked')?.value === 'NONE') {
+    const addRow = document.getElementById('prereq-add-row');
+    const rows = document.getElementById('prereq-rows');
+    if (addRow) addRow.style.display = 'none';
+    if (rows) rows.style.display = 'none';
+  }
 }
 
 // ── Type switch helpers ────────────────────────────────────────────────
