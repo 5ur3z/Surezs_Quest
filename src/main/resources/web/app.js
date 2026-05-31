@@ -23,6 +23,9 @@ const DEFAULT_QUEST_TEMPLATE = {
   dialogue: { give: '', accept: '', decline: '', in_progress: '', complete: '' }
 };
 
+let isFormDirty = false;
+function markFormClean() { isFormDirty = false; }
+
 // ── Callbacks for mindmap interactions ──────────────────────────────────
 const mindmapCallbacks = {
   onNodeClick(node) {
@@ -81,6 +84,13 @@ async function loadQuests() {
     redrawFn = result.redraw;
     // bind editor close once
     $('#editor-close').addEventListener('click', closeQuestEditor);
+  }
+
+  // Attach dirty-tracking listeners once (avoids stacking on tab switches)
+  if (!window._dirtyListenersAttached) {
+    window._dirtyListenersAttached = true;
+    $('#editor-body').addEventListener('input', () => { isFormDirty = true; });
+    $('#editor-body').addEventListener('change', () => { isFormDirty = true; });
   }
 
   refreshMindmap();
@@ -170,11 +180,13 @@ function selectQuestLine(name) {
 }
 function closeQuestEditor() {
   currentQuestId = null;
+  isFormDirty = false;
   $('#quest-editor').classList.add('collapsed');
   setTimeout(() => { if (redrawFn) redrawFn(); }, 350);
 }
 
 async function openQuestEditor(questId) {
+  if (isFormDirty && !confirm('You have unsaved changes. Discard them?')) return;
   $('#quest-editor').classList.remove('collapsed');
   setTimeout(() => { if (redrawFn) redrawFn(); }, 350);
   currentQuestId = questId;
@@ -213,6 +225,7 @@ async function openQuestEditor(questId) {
   }
 
   wireEditorEvents();
+  isFormDirty = false;
 
   // wire buttons
   $('#editor-save').onclick = async () => {
@@ -268,6 +281,7 @@ function wireEditorEvents() {
 }
 
 async function openNewQuestEditor() {
+  if (isFormDirty && !confirm('You have unsaved changes. Discard them?')) return;
   $('#quest-editor').classList.remove('collapsed');
   setTimeout(() => { if (redrawFn) redrawFn(); }, 350);
 
@@ -295,6 +309,7 @@ async function openNewQuestEditor() {
       $('#editor-body').appendChild(formEl);
     }
     wireEditorEvents();
+    isFormDirty = false;
   }
 
   // Override save to add quest to current quest line

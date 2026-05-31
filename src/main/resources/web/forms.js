@@ -391,6 +391,7 @@ async function saveForm() {
       if (newId !== currentQuestId || isNew) {
         currentQuestId = newId;
         if (typeof formData !== 'undefined') formData.id = newId;
+        if (typeof markFormClean === 'function') markFormClean();
       }
       // Update the editor title to reflect the real quest ID
       const titleEl = $('#editor-title');
