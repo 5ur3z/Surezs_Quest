@@ -363,6 +363,15 @@ async function saveForm() {
     obj = serializeForm();
   }
 
+  if (!obj.id || obj.id.trim() === '') {
+    const msg = $('#editor-save-msg');
+    if (msg) {
+      msg.textContent = 'Quest ID cannot be empty.';
+      msg.className = 'save-msg err';
+    }
+    return false;
+  }
+
   try {
     const raw = JSON.stringify(obj, null, 2);
     const newId = obj.id;
