@@ -4,6 +4,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.surez.surezs_quest.Translation;
 
 public class DialoguePopup {
 
@@ -84,7 +85,7 @@ public class DialoguePopup {
         boolean hoverClose = mouseX >= btnX && mouseX <= btnX + 36 && mouseY >= btnY && mouseY <= btnY + 16;
         int closeColor = hoverClose ? 0xFF_6688AA : 0xFF_445566;
         gfx.fill(btnX, btnY, btnX + 36, btnY + 16, closeColor);
-        gfx.drawCenteredString(font, Component.translatable("surezs_quest.button.close").getString(), btnX + 18, btnY + 2, 0xFF_FFFFFF);
+        gfx.drawCenteredString(font, Translation.tr("surezs_quest.button.close").getString(), btnX + 18, btnY + 2, 0xFF_FFFFFF);
 
         gfx.pose().popPose();
     }

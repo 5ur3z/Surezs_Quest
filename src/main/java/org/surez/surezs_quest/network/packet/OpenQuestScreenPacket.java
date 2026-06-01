@@ -33,8 +33,9 @@ public record OpenQuestScreenPacket(
     }
 
     /** Bundled display strings (avoids exceeding 6-field StreamCodec limit) */
-    public record TextData(String rewardText, String description) {
+    public record TextData(String name, String rewardText, String description) {
         static final StreamCodec<FriendlyByteBuf, TextData> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, TextData::name,
             ByteBufCodecs.STRING_UTF8, TextData::rewardText,
             ByteBufCodecs.STRING_UTF8, TextData::description,
             TextData::new

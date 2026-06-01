@@ -39,6 +39,7 @@ public class Surezs_quest {
         NeoForge.EVENT_BUS.register(new GameEventListener());
 
         DataLoaders.init(configDir);
+        Translation.reload();
 
         TriggerRegistry.register(new InventoryHandler());
         TriggerRegistry.register(new LocationHandler());
@@ -55,7 +56,8 @@ public class Surezs_quest {
             try {
                 WEB_SERVER.start(Config.INSTANCE.webEditorPort(),
                     configDir.resolve("quests"),
-                    configDir.resolve("npcs"));
+                    configDir.resolve("npcs"),
+                    configDir);
             } catch (Exception e) {
                 LOGGER.warn("Failed to auto-start web editor: {}", e.getMessage());
             }

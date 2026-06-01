@@ -3,6 +3,7 @@ package org.surez.surezs_quest.network;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import org.surez.surezs_quest.Translation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -69,7 +70,7 @@ public class NetworkHandler {
         if (data == null) return;
 
         var npcIds = new ArrayList<>(DataLoaders.NPCS.getAll().stream().map(npc -> npc.id()).toList());
-        var npcNames = new ArrayList<>(DataLoaders.NPCS.getAll().stream().map(npc -> npc.id().getPath()).toList());
+        var npcNames = new ArrayList<>(DataLoaders.NPCS.getAll().stream().map(npc -> npc.name()).toList());
         var accepted = new ArrayList<ResourceLocation>();
         var completed = new ArrayList<ResourceLocation>();
         var declined = new ArrayList<ResourceLocation>();
@@ -137,15 +138,15 @@ public class NetworkHandler {
                         appendItem(rewardItems, ir.iconId(), ir.item().count());
                     }
                     case QuestReward.ExperienceReward er -> {
-                        rewardText.append(er.experience()).append(Component.translatable("surezs_quest.reward.exp").getString());
+                        rewardText.append(er.experience()).append(Translation.tr("surezs_quest.reward.exp").getString());
                         appendItem(rewardItems, er.iconId(), er.experience());
                     }
                     case QuestReward.CommandReward cr -> {
-                        rewardText.append(Component.translatable("surezs_quest.reward.command").getString());
+                        rewardText.append(Translation.tr("surezs_quest.reward.command").getString());
                         appendItem(rewardItems, cr.iconId(), 1);
                     }
                     case QuestReward.FunctionReward fr -> {
-                        rewardText.append(Component.translatable("surezs_quest.reward.function").getString());
+                        rewardText.append(Translation.tr("surezs_quest.reward.function").getString());
                         appendItem(rewardItems, fr.iconId(), 1);
                     }
                 }
@@ -156,7 +157,7 @@ public class NetworkHandler {
                 + q.dialogue().decline() + "\0"
                 + q.dialogue().complete();
             String rewardStr = rewardText + (rewardItems.isEmpty() ? "" : "||" + rewardItems);
-            var texts = new OpenQuestScreenPacket.TextData(rewardStr, fullDesc);
+            var texts = new OpenQuestScreenPacket.TextData(q.name(), rewardStr, fullDesc);
             questInfos.add(new OpenQuestScreenPacket.QuestInfo(
                 q.id(), q.npcId(), objs, q.prerequisites(), flags, texts));
         }

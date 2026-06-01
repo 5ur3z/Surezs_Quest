@@ -38,6 +38,8 @@ public class QuestApiHandler implements HttpHandler {
                 else getQuest(exchange, id);
             } else if ("PUT".equals(method) && id != null && !id.isEmpty()) {
                 saveQuest(exchange, id);
+            } else if ("DELETE".equals(method) && id != null && !id.isEmpty()) {
+                deleteQuest(exchange, id);
             } else {
                 send(exchange, 405, "{\"error\":\"Method not allowed\"}");
             }
@@ -109,6 +111,21 @@ public class QuestApiHandler implements HttpHandler {
         } catch (JsonParseException e) {
             send(exchange, 400, "{\"error\":\"Invalid JSON\"}");
         }
+    }
+
+    private void deleteQuest(HttpExchange exchange, String id) throws IOException {
+        if (!validId(id)) {
+            send(exchange, 400, "{\"error\":\"Invalid quest ID\"}");
+            return;
+        }
+        Path file = resolveQuestFile(id);
+        if (file == null || !Files.exists(file)) {
+            send(exchange, 404, "{\"error\":\"Not found\"}");
+            return;
+        }
+        Files.delete(file);
+        LOGGER.info("Deleted quest: {}", id);
+        send(exchange, 200, "{\"ok\":true}");
     }
 
     private boolean validId(String id) {

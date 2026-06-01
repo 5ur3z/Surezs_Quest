@@ -8,6 +8,7 @@ import java.util.List;
 
 public record Quest(
     ResourceLocation id,
+    String name,
     ResourceLocation npcId,
     List<QuestObjective> objectives,
     List<ResourceLocation> prerequisites,
@@ -73,6 +74,7 @@ public record Quest(
     public static final Codec<Quest> CODEC = RecordCodecBuilder.create(instance ->
         instance.group(
             ResourceLocation.CODEC.fieldOf("id").forGetter(Quest::id),
+            Codec.STRING.optionalFieldOf("name", "").forGetter(Quest::name),
             ResourceLocation.CODEC.fieldOf("npc_id").forGetter(Quest::npcId),
             QuestObjective.CODEC.listOf().fieldOf("objectives").forGetter(Quest::objectives),
             ResourceLocation.CODEC.listOf().optionalFieldOf("prerequisites", List.of()).forGetter(Quest::prerequisites),

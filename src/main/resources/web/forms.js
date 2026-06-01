@@ -8,7 +8,7 @@ async function openQuestForm(id) {
   currentQuestId = id;
   const resp = await fetch('/api/quests/' + id);
   if (!resp.ok) {
-    document.querySelector(formTarget).innerHTML = '<p class="empty-state">Failed to load quest.</p>';
+    document.querySelector(formTarget).innerHTML = '<p class="empty-state">' + I18n.t('msg.load_failed') + '</p>';
     return;
   }
   formData = await resp.json();
@@ -70,68 +70,69 @@ function buildFormHtml(data, npcs, quests, showToolbar, questLineNames, allQuest
 
   const toolbar = showToolbar ? `
 <div class="toolbar">
-  <button class="btn-save" onclick="saveForm()">Save</button>
+  <button class="btn-save" onclick="saveForm()">${I18n.t('btn.save')}</button>
   <span class="save-msg" id="save-msg"></span>
-  <button class="btn-raw" onclick="switchToRaw()">Raw JSON</button>
+  <button class="btn-raw" onclick="switchToRaw()">${I18n.t('btn.raw_json')}</button>
 </div>` : '';
 
   return `
-<div class="form-section"><h3 class="section-title">Identity</h3>
-  <div class="form-row"><span class="form-label">ID</span><input name="id" value="${data.id}"></div>
-  <div class="form-row"><span class="form-label">NPC</span><select name="npc_id">${npcOpts}</select></div>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.identity')}</h3>
+  <div class="form-row"><span class="form-label">${I18n.t('label.id')}</span><input name="id" value="${data.id}"></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.name')}</span><input name="name" value="${esc(data.name || '')}"></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.npc')}</span><select name="npc_id">${npcOpts}</select></div>
 </div>
 
-<div class="form-section"><h3 class="section-title">Quest Lines</h3>
-  ${qlCheckboxes || '<p class="empty-state">No quest lines defined</p>'}
+<div class="form-section"><h3 class="section-title">${I18n.t('section.quest_lines')}</h3>
+  ${qlCheckboxes || '<p class="empty-state">' + I18n.t('msg.no_quest_lines') + '</p>'}
 </div>
 
-<div class="form-section"><h3 class="section-title">Scope</h3>
-  <div class="radio-group"><label><input type="radio" name="scope" value="PLAYER" ${data.scope !== 'SERVER' ? 'checked' : ''}> PLAYER</label></div>
-  <div class="radio-group"><label><input type="radio" name="scope" value="SERVER" ${data.scope === 'SERVER' ? 'checked' : ''}> SERVER</label></div>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.scope')}</h3>
+  <div class="radio-group"><label><input type="radio" name="scope" value="PLAYER" ${data.scope !== 'SERVER' ? 'checked' : ''}> ${I18n.t('scope.player')}</label></div>
+  <div class="radio-group"><label><input type="radio" name="scope" value="SERVER" ${data.scope === 'SERVER' ? 'checked' : ''}> ${I18n.t('scope.server')}</label></div>
 </div>
 
-<div id="fs-mode" class="form-section" style="display:${data.scope === 'SERVER' ? '' : 'none'}"><h3 class="section-title">Reward Mode</h3>
-  <div class="radio-group"><label><input type="radio" name="reward_mode" value="PER_CONTRIBUTOR" ${data.reward_mode !== 'ALL_ONLINE' ? 'checked' : ''}> PER_CONTRIBUTOR (per contributor)</label></div>
-  <div class="radio-group"><label><input type="radio" name="reward_mode" value="ALL_ONLINE" ${data.reward_mode === 'ALL_ONLINE' ? 'checked' : ''}> ALL_ONLINE</label></div>
+<div id="fs-mode" class="form-section" style="display:${data.scope === 'SERVER' ? '' : 'none'}"><h3 class="section-title">${I18n.t('section.reward_mode')}</h3>
+  <div class="radio-group"><label><input type="radio" name="reward_mode" value="PER_CONTRIBUTOR" ${data.reward_mode !== 'ALL_ONLINE' ? 'checked' : ''}> ${I18n.t('mode.per_contributor')}</label></div>
+  <div class="radio-group"><label><input type="radio" name="reward_mode" value="ALL_ONLINE" ${data.reward_mode === 'ALL_ONLINE' ? 'checked' : ''}> ${I18n.t('mode.all_online')}</label></div>
 </div>
 
-<div class="form-section"><h3 class="section-title">Flags</h3>
-  <div class="flag-group"><label><input type="checkbox" name="can_reject" ${data.can_reject ? 'checked' : ''}> can_reject</label></div>
-  <div class="flag-group"><label><input type="checkbox" name="repeatable" ${data.repeatable ? 'checked' : ''}> repeatable</label></div>
-  <div class="flag-group"><label><input type="checkbox" name="auto_accept" ${data.auto_accept ? 'checked' : ''}> auto_accept</label></div>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.flags')}</h3>
+  <div class="flag-group"><label><input type="checkbox" name="can_reject" ${data.can_reject ? 'checked' : ''}> ${I18n.t('flag.can_reject')}</label></div>
+  <div class="flag-group"><label><input type="checkbox" name="repeatable" ${data.repeatable ? 'checked' : ''}> ${I18n.t('flag.repeatable')}</label></div>
+  <div class="flag-group"><label><input type="checkbox" name="auto_accept" ${data.auto_accept ? 'checked' : ''}> ${I18n.t('flag.auto_accept')}</label></div>
 </div>
 
-<div class="form-section"><h3 class="section-title">Prerequisites</h3>
-  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="ALL" ${data.prerequisite_mode !== 'ANY' && data.prerequisite_mode !== 'NONE' ? 'checked' : ''}> ALL</label></div>
-  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="ANY" ${data.prerequisite_mode === 'ANY' ? 'checked' : ''}> ANY</label></div>
-  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="NONE" ${data.prerequisite_mode === 'NONE' ? 'checked' : ''}> NONE</label></div>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.prerequisites')}</h3>
+  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="ALL" ${data.prerequisite_mode !== 'ANY' && data.prerequisite_mode !== 'NONE' ? 'checked' : ''}> ${I18n.t('prereq.all')}</label></div>
+  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="ANY" ${data.prerequisite_mode === 'ANY' ? 'checked' : ''}> ${I18n.t('prereq.any')}</label></div>
+  <div class="radio-group" style="margin-bottom:6px"><label><input type="radio" name="prerequisite_mode" value="NONE" ${data.prerequisite_mode === 'NONE' ? 'checked' : ''}> ${I18n.t('prereq.none')}</label></div>
   <div id="prereq-rows">${renderPrereqRows(prereqIds)}</div>
   <div id="prereq-add-row" class="form-row" style="margin-top:6px">
     <select id="prereq-select">${quests.filter(q => q.id !== data.id && !prereqIds.includes(q.id)).map(q => `<option value="${q.id}">${q.id}</option>`).join('')}</select>
-    <button class="btn-add" onclick="addPrereq()" ${quests.filter(q => q.id !== data.id && !prereqIds.includes(q.id)).length === 0 ? 'disabled' : ''}>+ Add</button>
+    <button class="btn-add" onclick="addPrereq()" ${quests.filter(q => q.id !== data.id && !prereqIds.includes(q.id)).length === 0 ? 'disabled' : ''}>${I18n.t('btn.add')}</button>
   </div>
 </div>
 
-<div class="form-section"><h3 class="section-title">Timing</h3>
-  <div class="form-row"><span class="form-label">Time limit</span><input type="number" name="time_limit_ticks" value="${data.time_limit_ticks || 0}" min="0" style="flex:0 0 100px"><span style="font-size:0.78rem;color:var(--text-dim);flex-shrink:0">ticks</span></div>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.timing')}</h3>
+  <div class="form-row"><span class="form-label">${I18n.t('label.time_limit')}</span><input type="number" name="time_limit_ticks" value="${data.time_limit_ticks || 0}" min="0" style="flex:0 0 100px"><span style="font-size:0.78rem;color:var(--text-dim);flex-shrink:0">${I18n.t('ticks')}</span></div>
 </div>
 
-<div class="form-section"><h3 class="section-title">Objectives</h3>
-  <div id="obj-rows">${objRows || '<p class="empty-state">No objectives</p>'}</div>
-  <button class="btn-add" onclick="addObjRow()">+ Add Objective</button>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.objectives')}</h3>
+  <div id="obj-rows">${objRows || '<p class="empty-state">' + I18n.t('msg.no_objectives') + '</p>'}</div>
+  <button class="btn-add" onclick="addObjRow()">${I18n.t('btn.add_objective')}</button>
 </div>
 
-<div class="form-section"><h3 class="section-title">Rewards</h3>
-  <div id="rew-rows">${rewRows || '<p class="empty-state">No rewards</p>'}</div>
-  <button class="btn-add" onclick="addRewRow()">+ Add Reward</button>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.rewards')}</h3>
+  <div id="rew-rows">${rewRows || '<p class="empty-state">' + I18n.t('msg.no_rewards') + '</p>'}</div>
+  <button class="btn-add" onclick="addRewRow()">${I18n.t('btn.add_reward')}</button>
 </div>
 
-<div class="form-section"><h3 class="section-title">Dialogue</h3>
-  <div class="form-row"><span class="form-label">Give (desc)</span><textarea name="dlg_give" rows="2">${esc(data.dialogue?.give || '')}</textarea></div>
-  <div class="form-row"><span class="form-label">Accept</span><textarea name="dlg_accept" rows="2">${esc(data.dialogue?.accept || '')}</textarea></div>
-  <div class="form-row"><span class="form-label">Decline</span><textarea name="dlg_decline" rows="2">${esc(data.dialogue?.decline || '')}</textarea></div>
-  <div class="form-row"><span class="form-label">In Progress</span><textarea name="dlg_in_progress" rows="2">${esc(data.dialogue?.in_progress || '')}</textarea></div>
-  <div class="form-row"><span class="form-label">Complete</span><textarea name="dlg_complete" rows="2">${esc(data.dialogue?.complete || '')}</textarea></div>
+<div class="form-section"><h3 class="section-title">${I18n.t('section.dialogue')}</h3>
+  <div class="form-row"><span class="form-label">${I18n.t('label.give')}</span><textarea name="dlg_give" rows="2">${esc(data.dialogue?.give || '')}</textarea></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.accept')}</span><textarea name="dlg_accept" rows="2">${esc(data.dialogue?.accept || '')}</textarea></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.decline')}</span><textarea name="dlg_decline" rows="2">${esc(data.dialogue?.decline || '')}</textarea></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.in_progress')}</span><textarea name="dlg_in_progress" rows="2">${esc(data.dialogue?.in_progress || '')}</textarea></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.complete')}</span><textarea name="dlg_complete" rows="2">${esc(data.dialogue?.complete || '')}</textarea></div>
 </div>
 
 ${toolbar}
@@ -144,51 +145,54 @@ function buildObjectiveRow(obj) {
   return `<div class="obj-row" data-type="${obj.type}">
     <select class="obj-type" onchange="rebuildObjRow(this)">${opts}</select>
     ${objFields(obj)}
-    <button class="btn-del" onclick="delObjRow(this)" title="Remove">−</button>
+    <button class="btn-del" onclick="delObjRow(this)" title="${I18n.t('btn.remove')}">−</button>
   </div>`;
 }
 
 function objFields(obj) {
   switch (obj.type) {
     case 'reach_location':
-      return `<input class="obj-dim" value="${obj.dimension || 'minecraft:overworld'}">
-        x<input type="number" class="obj-x" value="${obj.x || 0}">
-        y<input type="number" class="obj-y" value="${obj.y || 64}">
-        z<input type="number" class="obj-z" value="${obj.z || 0}">
-        r<input type="number" class="obj-r" value="${obj.radius || 5}">`;
+      return `<div class="loc-fields">
+        <input class="obj-dim" value="${obj.dimension || 'minecraft:overworld'}">
+        <span>x</span><input type="number" class="obj-x" value="${obj.x || 0}">
+        <span>y</span><input type="number" class="obj-y" value="${obj.y || 64}">
+        <span>z</span><input type="number" class="obj-z" value="${obj.z || 0}">
+        <span>r</span><input type="number" class="obj-r" value="${obj.radius || 5}">
+      </div>`;
     case 'kill_entity':
-      return `<input class="obj-item" value="${obj.entity_type_id || ''}">
-        x<input type="number" class="obj-count" value="${obj.count || 1}" min="1">`;
+      return `<input class="obj-item" value="${obj.entity_type_id || ''}"><span class="obj-times">&times;</span><input type="number" class="obj-count" value="${obj.count || 1}" min="1">`;
     default:
-      return `<input class="obj-item" value="${obj.item || ''}">
-        x<input type="number" class="obj-count" value="${obj.count || 1}" min="1">`;
+      return `<input class="obj-item" value="${obj.item || ''}"><span class="obj-times">&times;</span><input type="number" class="obj-count" value="${obj.count || 1}" min="1">`;
   }
 }
 
 function buildRewardRow(rw) {
   const types = ['ITEM','EXPERIENCE','COMMAND','FUNCTION'];
   const opts = types.map(t => `<option value="${t}" ${rw.type === t ? 'selected' : ''}>${t}</option>`).join('');
+  const hasIcon = !!(rw.icon);
   return `<div class="rew-row" data-type="${rw.type}">
-    <select class="rew-type" onchange="rebuildRewRow(this)">${opts}</select>
-    ${rewFields(rw)}
-    <button class="btn-icon-toggle" onclick="toggleRewIcon(this)" title="Toggle icon">icon</button>
-    <button class="btn-del" onclick="delRewRow(this)" title="Remove">−</button>
+    <div class="rew-main">
+      <select class="rew-type" onchange="rebuildRewRow(this)">${opts}</select>
+      ${rewFields(rw)}
+      <button class="btn-icon-toggle" onclick="toggleRewIcon(this)" title="${I18n.t('btn.toggle_icon')}">${I18n.t('btn.icon')}</button>
+      <button class="btn-del" onclick="delRewRow(this)" title="${I18n.t('btn.remove')}">−</button>
+    </div>
+    <div class="rew-icon-row${hasIcon ? ' show' : ''}">
+      <span>${I18n.t('btn.icon')}:</span><input class="rew-icon" value="${esc(rw.icon || '')}">
+    </div>
   </div>`;
 }
 
 function rewFields(rw) {
-  const hasIcon = !!(rw.icon);
-  const iconHtml = `<span class="rew-icon-wrap${hasIcon ? ' show' : ''}">icon:<input class="rew-icon" value="${esc(rw.icon || '')}"></span>`;
   switch (rw.type) {
     case 'ITEM':
-      return `<input class="rew-item-id" value="${rw.item?.id || ''}">
-        x<input type="number" class="rew-item-count" value="${rw.item?.count || 1}" min="1">${iconHtml}`;
+      return `<input class="rew-item-id" value="${rw.item?.id || ''}"><span class="obj-times">&times;</span><input type="number" class="rew-item-count" value="${rw.item?.count || 1}" min="1">`;
     case 'EXPERIENCE':
-      return `<input type="number" class="rew-exp" value="${rw.experience || 0}" min="0">${iconHtml}`;
+      return `<input type="number" class="rew-exp" value="${rw.experience || 0}" min="0">`;
     case 'COMMAND':
-      return `<input class="rew-cmd" value="${esc(rw.command || '')}">${iconHtml}`;
+      return `<input class="rew-cmd" value="${esc(rw.command || '')}">`;
     case 'FUNCTION':
-      return `<input class="rew-func" value="${rw.function || ''}">${iconHtml}`;
+      return `<input class="rew-func" value="${rw.function || ''}">`;
     default:
       return '';
   }
@@ -264,8 +268,8 @@ function delRewRow(btn) {
 }
 
 function toggleRewIcon(btn) {
-  const wrap = btn.closest('.rew-row').querySelector('.rew-icon-wrap');
-  wrap.classList.toggle('show');
+  const iconRow = btn.closest('.rew-row').querySelector('.rew-icon-row');
+  if (iconRow) iconRow.classList.toggle('show');
 }
 
 // ── Serialize ──────────────────────────────────────────────────────────
@@ -324,6 +328,7 @@ function serializeForm() {
 
   return {
     id: el('[name="id"]').value,
+    name: el('[name="name"]').value,
     npc_id: el('[name="npc_id"]').value,
     scope: radio('scope'),
     reward_mode: radio('reward_mode'),
@@ -354,7 +359,7 @@ async function saveForm() {
     } catch (e) {
       const msg = $('#editor-save-msg');
       if (msg) {
-        msg.textContent = 'Invalid JSON: ' + e.message;
+        msg.textContent = I18n.t('msg.invalid_json', {error: e.message});
         msg.className = 'save-msg err';
       }
       return false;
@@ -366,7 +371,7 @@ async function saveForm() {
   if (!obj.id || obj.id.trim() === '') {
     const msg = $('#editor-save-msg');
     if (msg) {
-      msg.textContent = 'Quest ID cannot be empty.';
+      msg.textContent = I18n.t('msg.id_empty');
       msg.className = 'save-msg err';
     }
     return false;
@@ -380,7 +385,7 @@ async function saveForm() {
     // Conflict detection for new quests
     if (isNew) {
       const exists = allQuests.some(q => q.id === newId);
-      if (exists && !confirm('Quest "' + newId + '" already exists. Overwrite it?')) {
+      if (exists && !confirm(I18n.t('msg.overwrite_confirm', {id: newId}))) {
         return false;
       }
     }
@@ -390,14 +395,14 @@ async function saveForm() {
     if (resp.ok) {
       if (newId !== currentQuestId || isNew) {
         currentQuestId = newId;
-        if (typeof formData !== 'undefined') formData.id = newId;
+        if (formData != null) formData.id = newId;
       }
       if (typeof markFormClean === 'function') markFormClean();
       // Update the editor title to reflect the real quest ID
       const titleEl = $('#editor-title');
       if (titleEl) titleEl.textContent = newId;
       if (msg) {
-        msg.textContent = 'Saved! Run /quest reload in-game.';
+        msg.textContent = I18n.t('msg.saved');
         msg.className = 'save-msg ok';
         setTimeout(() => { if (msg) msg.textContent = ''; }, 5000);
       }
@@ -423,7 +428,7 @@ async function saveForm() {
       return true;
     } else {
       if (msg) {
-        msg.textContent = 'Save failed.';
+        msg.textContent = I18n.t('msg.save_failed');
         msg.className = 'save-msg err';
       }
       return false;
@@ -431,7 +436,7 @@ async function saveForm() {
   } catch (e) {
     const msg = $('#editor-save-msg');
     if (msg) {
-      msg.textContent = 'Serialization error: ' + e.message;
+      msg.textContent = I18n.t('msg.serialization_error', {error: e.message});
       msg.className = 'save-msg err';
     }
     return false;
@@ -451,7 +456,7 @@ function switchToRaw() {
   // Toggle footer button to "Form"
   const rawBtn = $('#editor-raw');
   if (rawBtn) {
-    rawBtn.textContent = 'Form';
+    rawBtn.textContent = I18n.t('btn.form');
     rawBtn.onclick = () => { if (typeof switchToForm === 'function') switchToForm(); };
   }
 }
@@ -465,7 +470,7 @@ function switchToForm() {
     // Toggle footer button back to "Raw JSON"
     const rawBtn = $('#editor-raw');
     if (rawBtn) {
-      rawBtn.textContent = 'Raw JSON';
+      rawBtn.textContent = I18n.t('btn.raw_json');
       rawBtn.onclick = () => { if (typeof switchToRaw === 'function') switchToRaw(); };
     }
   } catch (e) {
@@ -536,24 +541,113 @@ function rebuildObjRow(select) {
 function rebuildRewRow(select) {
   const row = select.closest('.rew-row');
   const type = select.value;
-  row.setAttribute('data-type', type);
+
+  // preserve current values
+  const itemId = row.querySelector('.rew-item-id')?.value || 'minecraft:';
+  const itemCount = parseInt(row.querySelector('.rew-item-count')?.value) || 1;
+  const exp = parseInt(row.querySelector('.rew-exp')?.value) || 0;
+  const cmd = row.querySelector('.rew-cmd')?.value || '';
+  const func = row.querySelector('.rew-func')?.value || '';
   const iconVal = row.querySelector('.rew-icon')?.value || '';
-  const iconShown = row.querySelector('.rew-icon-wrap')?.classList.contains('show');
+  const iconShown = row.querySelector('.rew-icon-row')?.classList.contains('show');
+
   const dummy = { type };
   if (iconVal) dummy.icon = iconVal;
-  if (type === 'ITEM') { dummy.item = { id: 'minecraft:', count: 1 }; }
-  else if (type === 'EXPERIENCE') { dummy.experience = 0; }
-  else if (type === 'COMMAND') { dummy.command = ''; }
-  else if (type === 'FUNCTION') { dummy.function = ''; }
-  while (row.children.length > 1) row.removeChild(row.lastChild);
-  row.insertAdjacentHTML('beforeend', rewFields(dummy));
+  if (type === 'ITEM') { dummy.item = { id: itemId, count: itemCount }; }
+  else if (type === 'EXPERIENCE') { dummy.experience = exp; }
+  else if (type === 'COMMAND') { dummy.command = cmd; }
+  else if (type === 'FUNCTION') { dummy.function = func; }
+
+  // rebuild entire row
+  const temp = document.createElement('div');
+  temp.innerHTML = buildRewardRow(dummy);
+  const newRow = temp.firstElementChild;
   if (iconShown) {
-    const wrap = row.querySelector('.rew-icon-wrap');
-    if (wrap) wrap.classList.add('show');
+    const iconRow = newRow.querySelector('.rew-icon-row');
+    if (iconRow) iconRow.classList.add('show');
   }
+  row.replaceWith(newRow);
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function esc(s) {
   return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── Name → ID auto-sync ─────────────────────────────────────────────
+let idAutoSynced = false;
+
+function toPinyin(text) {
+  if (!text) return '';
+  if (typeof pinyinPro !== 'undefined') {
+    try {
+      const fn = pinyinPro.default || pinyinPro.pinyin || pinyinPro;
+      return fn(text, { type: 'array', toneType: 'none' }).join('');
+    } catch (_) {}
+  }
+  // fallback: strip non-ASCII so Chinese doesn't get fully erased
+  return text.replace(/[^\x00-\x7F]/g, '');
+}
+
+function nameToSlug(name) {
+  if (!name) return '';
+  const pinyin = toPinyin(name);
+  return pinyin
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+}
+
+function syncNameToId() {
+  if (!idAutoSynced) return;
+  const nameEl = document.querySelector('[name="name"]');
+  const idEl = document.querySelector('[name="id"]');
+  if (!nameEl || !idEl) return;
+  const slug = nameToSlug(nameEl.value);
+  idEl.value = slug ? 'surezs_quest:' + slug : '';
+}
+
+function wireNameToIdSync() {
+  const nameEl = document.querySelector('[name="name"]');
+  const idEl = document.querySelector('[name="id"]');
+  if (!nameEl || !idEl) return;
+
+  idAutoSynced = !idEl.value || idEl.value === 'surezs_quest:';
+
+  nameEl.addEventListener('input', syncNameToId);
+
+  idEl.addEventListener('input', () => {
+    if (!idEl.value || idEl.value === 'surezs_quest:') {
+      idAutoSynced = true;
+      syncNameToId();
+    } else {
+      const slug = nameToSlug(nameEl.value);
+      const expected = slug ? 'surezs_quest:' + slug : '';
+      if (idEl.value !== expected) {
+        idAutoSynced = false;
+      }
+    }
+  });
+
+  if (idAutoSynced) syncNameToId();
+}
+
+// ── NPC form ────────────────────────────────────────────────────────
+function buildNpcFormHtml(data) {
+  return `
+<div class="form-section"><h3 class="section-title">${I18n.t('section.identity')}</h3>
+  <div class="form-row"><span class="form-label">${I18n.t('label.id')}</span><input name="npc_id" value="${esc(data.id || '')}" readonly></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.name')}</span><input name="npc_name" value="${esc(data.name || '')}"></div>
+  <div class="form-row"><span class="form-label">${I18n.t('label.avatar')}</span><input name="npc_avatar" value="${esc(data.avatar || '')}"></div>
+</div>
+`;
+}
+
+function serializeNpcForm() {
+  const el = (s) => document.querySelector(s);
+  return {
+    id: el('[name="npc_id"]').value,
+    name: el('[name="npc_name"]').value,
+    avatar: el('[name="npc_avatar"]').value
+  };
 }

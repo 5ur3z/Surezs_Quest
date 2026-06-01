@@ -3,6 +3,7 @@ package org.surez.surezs_quest.screen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.surez.surezs_quest.Translation;
 import org.surez.surezs_quest.avatar.NPCAvatarManager;
 
 public class NPCAvatarRenderer {
@@ -14,7 +15,7 @@ public class NPCAvatarRenderer {
         // if texture isn't loaded yet or is default placeholder, draw a colored square
         if (tex == null || tex.getPath().contains("avatar_default")) {
             gfx.fill(x, y, x + AVATAR_SIZE, y + AVATAR_SIZE, 0xFF_666666);
-            gfx.drawString(net.minecraft.client.Minecraft.getInstance().font, Component.translatable("surezs_quest.npc.unknown_avatar").getString(), x + 5, y + 2, 0xFFFFFF);
+            gfx.drawString(net.minecraft.client.Minecraft.getInstance().font, Translation.tr("surezs_quest.npc.unknown_avatar").getString(), x + 5, y + 2, 0xFFFFFF);
             return;
         }
 

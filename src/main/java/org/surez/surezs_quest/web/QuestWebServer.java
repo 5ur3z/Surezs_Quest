@@ -12,13 +12,15 @@ public class QuestWebServer {
     private static final Logger LOGGER = LogUtils.getLogger();
     private HttpServer server;
 
-    public void start(int port, Path questDir, Path npcDir) throws IOException {
+    public void start(int port, Path questDir, Path npcDir, Path configDir) throws IOException {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
         server.createContext("/", new StaticFileHandler());
         var questHandler = new QuestApiHandler(questDir);
         server.createContext("/api/quests", questHandler);
         server.createContext("/api/quests/", questHandler);
         server.createContext("/api/npcs", new NpcApiHandler(npcDir));
+        server.createContext("/api/questlines", new QuestLineApiHandler(configDir));
+        server.createContext("/api/lang", new LangApiHandler());
         server.setExecutor(null);
         server.start();
         LOGGER.info("Web editor started on http://localhost:{}", port);

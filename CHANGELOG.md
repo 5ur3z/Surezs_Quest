@@ -8,6 +8,55 @@
 
 ---
 
+## [0.9.0] — 2026-05-31
+
+### 新增
+- **任务显示名称 (`name` 字段)**：`Quest` record 新增 `String name` 参数，Codec 以 `optionalFieldOf("name", "")` 向后兼容。名称通过 `OpenQuestScreenPacket.TextData` 下发到客户端，`ClientQuestData.getName()` 暴露给 GUI。`QuestCardWidget` 折叠/展开标题均渲染显示名称，为空时回退到 `id.getPath()`。5 个示例任务及运行时配置均添加 `"name"` 字段
+- **Web 编辑器 Name 字段**：Identity 区块在 ID 和 NPC 之间新增 Name 输入框，`serializeForm()` 同步回写，新建任务模板默认包含 `name: ''`
+- **Name → ID 自动同步**：Web 编辑器中输入 Name 时自动生成 ID（前缀 `surezs_quest:`，中文自动转拼音）。手动修改 ID 后同步关闭，清空 ID 后重新开启。编辑已有任务不触发同步
+- **拼音转换库**：`pinyin-pro.min.js`（315KB）作为静态资源加载，`toPinyin()` 封装 API 调用及安全兜底（库未加载时剥离非 ASCII 字符）
+
+### 变更
+- **Web 编辑器 CSS 高度统一**：`.form-row input, .form-row select`、`.obj-row input, .obj-row select`、`.rew-row input, .rew-row select` 均增加 `height: 34px`，修复浏览器对 `<input>` 和 `<select>` 的默认高度差异
+
+### 修复
+- **Name→ID 同步中文输入导致 ID 清空**：`pinyinPro()` 调用签名错误（库导出为 `pinyinPro.default()` 非直接调用）+ 回退中文被正则全部 strip → 修正 API 调用 + 回退时预剥离非 ASCII 字符
+
+### 文件
+- 新增 `resources/web/pinyin-pro.min.js`
+- 修改 `api/quest/Quest.java`、`network/packet/OpenQuestScreenPacket.java`、`network/NetworkHandler.java`、`screen/ClientQuestData.java`、`screen/QuestCardWidget.java`、`test/.../QuestObjectiveUtilsTest.java`
+- 修改 `resources/data/surezs_quest/quests/*.json`（5 个示例任务）、`run/config/surezs_quest/quests/*.json`（5 个运行时任务）
+- 修改 `resources/web/index.html`、`app.js`、`forms.js`
+
+---
+
+## [0.8.1] — 2026-05-30
+
+### 新增
+- **QuestLine REST API**：`QuestLineApiHandler` 提供完整的任务线 CRUD 端点。`GET /api/questlines` 列出所有任务线，`POST /api/questlines` 创建，`PUT /api/questlines/{name}` 重命名，`DELETE /api/questlines/{name}` 删除，`PUT /api/questlines/{name}/quests` 更新线内任务列表。持久化到 `config/surezs_quest/questlines.json`
+- **默认任务线自动创建**：后端首次加载时扫描 `quests/` 目录读取所有任务 ID，自动创建包含全部任务的 `default` 线
+- **QuestLineStore 前端模块**：`questline.js` 提供任务线数据管理，后端不可用时降级为纯内存模式。前端通过 `/api/questlines` 与后端同步
+
+### 变更
+- **Web 编辑器 UI 重构**：三栏布局——左侧任务线列表、中间 Canvas 思维导图、右侧表单编辑器。QuestLine 和 Quest 视图共存于同一面板
+- **思维导图可视化**：`mindmap.js` 基于 Canvas 的拓扑分层布局（Kahn BFS），支持贝塞尔曲线连线、缩放/平移、节点拖拽、右键菜单。左键空白区拖动平移画布（原中键）
+- **表单化编辑器增强**：支持 scope、reward_mode、prerequisites、time_limit、5 种 objective type 动态切换、4 种 reward type 及 icon 显隐、Form ↔ Raw JSON 双向切换
+- **`QuestWebServer.start()` 新增 `configDir` 参数**：为 QuestLine API 提供持久化路径
+- **移除 toolbar "添加任务到线" 控件**：`+` 按钮和下拉框容易引起误解（它只是将已有任务拉入当前线，并非创建新任务），已删除 `ensureAddQuestControls()` 和 `populateToolbarAddQuest()`
+
+### 修复
+- **Header 标题垂直居中**：`header h1` 添加 `margin: 0; line-height: 1;` 消除浏览器默认 h1 边距导致的偏上
+- **`selectQuestLine` 缺少右大括号**：导致后续函数被吞入 `selectQuestLine` 体内，`+ New Quest Line` 按钮点击无反应
+- **`QuestCommand.startEditor()` 缺少 `configDir` 参数**：`QuestWebServer.start()` 签名变更后漏改此调用点
+
+### 文件
+- 新增 `web/QuestLineApiHandler.java`
+- 新增 `resources/web/mindmap.js`、`resources/web/questline.js`
+- 修改 `QuestWebServer.java`、`Surezs_quest.java`、`QuestCommand.java`
+- 修改 `resources/web/index.html`、`app.js`、`forms.js`
+
+---
+
 ## [0.8.0] — 2026-05-30
 
 ### 新增

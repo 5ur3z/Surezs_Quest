@@ -1,5 +1,6 @@
 {
   "id": "surezs_quest:server_collect_iron",
+  "name": "Collect Iron Ingots (Server)",
   "npc_id": "surezs_quest:aleksei",
   "scope": "SERVER",
   "reward_mode": "PER_CONTRIBUTOR",

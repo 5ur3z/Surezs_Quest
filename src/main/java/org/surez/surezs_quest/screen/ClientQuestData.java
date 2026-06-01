@@ -10,6 +10,7 @@ import java.util.*;
 public class ClientQuestData {
 
     private static final Map<ResourceLocation, Quest> quests = new HashMap<>();
+    private static final Map<ResourceLocation, String> names = new HashMap<>();
     private static final Map<ResourceLocation, String> rewardTexts = new HashMap<>();
     private static final Map<ResourceLocation, List<ItemRewardInfo>> rewardItems = new HashMap<>();
 
@@ -19,6 +20,7 @@ public class ClientQuestData {
     /** Called by the client when it receives quest data from the server */
     public static void loadFromServer(List<OpenQuestScreenPacket.QuestInfo> infos) {
         quests.clear();
+        names.clear();
         rewardTexts.clear();
         rewardItems.clear();
         descriptions.clear();
@@ -35,7 +37,7 @@ public class ClientQuestData {
                 objectives.add(obj);
             }
             Quest quest = new Quest(
-                info.id(), info.npcId(), objectives, info.prerequisites(),
+                info.id(), info.texts().name(), info.npcId(), objectives, info.prerequisites(),
                 Quest.PrerequisiteMode.ALL,
                 Quest.Scope.PLAYER,
                 List.of(),
@@ -44,6 +46,7 @@ public class ClientQuestData {
                 new Quest.Dialogue("", "", "", "", "")
             );
             quests.put(quest.id(), quest);
+            names.put(info.id(), info.texts().name());
 
             // Parse reward text for display + item icons
             String raw = info.texts().rewardText();
@@ -91,6 +94,12 @@ public class ClientQuestData {
 
     public static Quest get(ResourceLocation id) { return quests.get(id); }
     public static Collection<Quest> getAll() { return quests.values(); }
+
+    public static String getName(ResourceLocation id) {
+        String name = names.get(id);
+        return name != null && !name.isEmpty() ? name : id.getPath();
+    }
+
     public static String getRewardText(ResourceLocation id) { return rewardTexts.getOrDefault(id, ""); }
     public static List<ItemRewardInfo> getRewardItems(ResourceLocation id) { return rewardItems.getOrDefault(id, List.of()); }
 

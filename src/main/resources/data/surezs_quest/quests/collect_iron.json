@@ -1,5 +1,6 @@
 {
   "id": "surezs_quest:collect_iron",
+  "name": "Collect Iron Ingots",
   "npc_id": "surezs_quest:aleksei",
   "objectives": [
     {

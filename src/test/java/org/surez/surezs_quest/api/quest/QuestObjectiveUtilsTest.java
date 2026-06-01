@@ -27,6 +27,7 @@ class QuestObjectiveUtilsTest {
     void maxProgressReturnsOneForInvalidQuestIndex() {
         Quest quest = new Quest(
             ResourceLocation.parse("surezs_quest:test"),
+            "",
             ResourceLocation.parse("surezs_quest:aleksei"),
             List.of(new QuestObjective.FindItems(ResourceLocation.parse("minecraft:iron_ingot"), 2)),
             List.of(),

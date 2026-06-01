@@ -25,10 +25,12 @@ public class Config {
     private int autoSaveIntervalSeconds = 30;
     private int locationCheckIntervalTicks = 20;
     private int webEditorPort = 0;  // 0 = disabled
+    private String language = "en_us";
 
     public int autoSaveIntervalSeconds() { return autoSaveIntervalSeconds; }
     public int locationCheckIntervalTicks() { return locationCheckIntervalTicks; }
     public int webEditorPort() { return webEditorPort; }
+    public String language() { return language != null && !language.isEmpty() ? language : "en_us"; }
 
     // -- load / save -----------------------------------------------------------
 
@@ -46,6 +48,8 @@ public class Config {
                     config.locationCheckIntervalTicks = root.get("location_check_interval_ticks").getAsInt();
                 if (root.has("web_editor_port"))
                     config.webEditorPort = root.get("web_editor_port").getAsInt();
+                if (root.has("language"))
+                    config.language = root.get("language").getAsString();
             } catch (IOException e) {
                 LOGGER.warn("Failed to load config, using defaults: {}", e.getMessage());
             }
@@ -61,6 +65,7 @@ public class Config {
         root.addProperty("auto_save_interval_seconds", autoSaveIntervalSeconds);
         root.addProperty("location_check_interval_ticks", locationCheckIntervalTicks);
         root.addProperty("web_editor_port", webEditorPort);
+        root.addProperty("language", language);
 
         try {
             Files.createDirectories(configFile.getParent());

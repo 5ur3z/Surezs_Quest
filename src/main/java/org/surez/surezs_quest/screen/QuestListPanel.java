@@ -4,6 +4,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.surez.surezs_quest.Translation;
 import org.surez.surezs_quest.api.quest.Quest;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class QuestListPanel {
 
         List<Quest> npcQuests = getVisibleQuests(activeId);
         if (npcQuests.isEmpty()) {
-            gfx.drawString(mc().font, Component.translatable("surezs_quest.npc.no_quests").getString(), x + 4, y + 4, 0xFF_888888);
+            gfx.drawString(mc().font, Translation.tr("surezs_quest.npc.no_quests").getString(), x + 4, y + 4, 0xFF_888888);
             return;
         }
 

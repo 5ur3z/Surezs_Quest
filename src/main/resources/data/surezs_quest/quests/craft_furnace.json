@@ -1,5 +1,6 @@
 {
   "id": "surezs_quest:craft_furnace",
+  "name": "Craft a Furnace",
   "npc_id": "surezs_quest:aleksei",
   "objectives": [
     {

@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.surez.surezs_quest.Translation;
 import org.surez.surezs_quest.network.packet.RequestOpenQuestScreenPacket;
 
 public class QuestScreen extends Screen {
@@ -13,7 +14,7 @@ public class QuestScreen extends Screen {
     private QuestListPanel questList;
 
     public QuestScreen() {
-        super(Component.translatable("surezs_quest.screen.title"));
+        super(Translation.tr("surezs_quest.screen.title"));
     }
 
     @Override
@@ -34,7 +35,7 @@ public class QuestScreen extends Screen {
         // sidebar
         gfx.fill(0, 0, SIDEBAR_WIDTH, this.height, 0xFF_2C2C2C);
         gfx.fill(SIDEBAR_WIDTH, 0, SIDEBAR_WIDTH + 1, this.height, 0xFF_555555);
-        gfx.drawCenteredString(this.font, Component.translatable("surezs_quest.screen.title").getString(), SIDEBAR_WIDTH / 2, 6, 0xFFFFFF);
+        gfx.drawCenteredString(this.font, Translation.tr("surezs_quest.screen.title").getString(), SIDEBAR_WIDTH / 2, 6, 0xFFFFFF);
         sidebar.render(gfx, mouseX, mouseY);
 
         // quest list (right panel)

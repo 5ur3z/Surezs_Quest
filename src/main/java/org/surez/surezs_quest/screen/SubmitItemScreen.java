@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.surez.surezs_quest.Translation;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.surez.surezs_quest.network.packet.ConfirmSubmitPacket;
 import org.surez.surezs_quest.network.packet.OpenSubmitScreenPacket;
@@ -20,7 +21,7 @@ public class SubmitItemScreen extends Screen {
     private final Set<Integer> selectedSlots = new HashSet<>();
 
     public SubmitItemScreen(ResourceLocation questId, List<OpenSubmitScreenPacket.SlotItem> items) {
-        super(Component.translatable("surezs_quest.screen.submit_title"));
+        super(Translation.tr("surezs_quest.screen.submit_title"));
         this.questId = questId;
         this.items = items;
     }
@@ -39,7 +40,7 @@ public class SubmitItemScreen extends Screen {
     public void render(GuiGraphics gfx, int mouseX, int mouseY, float partialTick) {
         gfx.fill(0, 0, this.width, this.height, 0xFF_222222);
 
-        gfx.drawCenteredString(this.font, Component.translatable("surezs_quest.submit.select_items").getString(), this.width / 2, 10, 0xFFFFFF);
+        gfx.drawCenteredString(this.font, Translation.tr("surezs_quest.submit.select_items").getString(), this.width / 2, 10, 0xFFFFFF);
 
         int startX = this.width / 2 - 100;
         int y = 30;
@@ -50,7 +51,7 @@ public class SubmitItemScreen extends Screen {
             int bgColor = selected ? 0xFF_446644 : 0xFF_333333;
             gfx.fill(startX, y, startX + 200, y + 20, bgColor);
 
-            String label = item.itemId().getPath() + " x" + item.count() + String.format(Component.translatable("surezs_quest.submit.slot_label").getString(), item.slotIndex());
+            String label = item.itemId().getPath() + " x" + item.count() + String.format(Translation.tr("surezs_quest.submit.slot_label").getString(), item.slotIndex());
             gfx.drawString(this.font, label, startX + 4, y + 4, 0xFFFFFF);
 
             y += 22;
@@ -62,7 +63,7 @@ public class SubmitItemScreen extends Screen {
             int btnX1 = this.width / 2 - 30, btnX2 = this.width / 2 + 30;
             boolean hover = mouseX >= btnX1 && mouseX <= btnX2 && mouseY >= btnY && mouseY <= btnY + 20;
             gfx.fill(btnX1, btnY, btnX2, btnY + 20, hover ? 0xFF_337733 : 0xFF_226622);
-            gfx.drawCenteredString(this.font, Component.translatable("surezs_quest.submit.confirm").getString(), this.width / 2, btnY + 4, 0xFFFFFF);
+            gfx.drawCenteredString(this.font, Translation.tr("surezs_quest.submit.confirm").getString(), this.width / 2, btnY + 4, 0xFFFFFF);
         }
 
         super.render(gfx, mouseX, mouseY, partialTick);

@@ -444,7 +444,7 @@
     .form-section label { display: block; margin-bottom: 4px; font-size: 0.82rem; }
     .form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     .form-label { width: 120px; flex-shrink: 0; text-align: left; color: var(--text-dim); font-size: 0.78rem; }
-    .form-row input, .form-row select { flex: 1; min-width: 0; }
+    .form-row input, .form-row select { flex: 1; min-width: 0; height: 34px; }
     .form-row textarea { flex: 1; min-width: 0; height: auto; min-height: unset; }
     .form-section .radio-group, .form-section .flag-group { display: flex; gap: 12px; flex-wrap: wrap; }
     .form-section .radio-group label, .form-section .flag-group label { display: flex; align-items: center; gap: 4px; font-size: 0.82rem; }
@@ -469,16 +469,62 @@
       outline: none;
     }
     .form-section input[readonly]:not([type="radio"]):not([type="checkbox"]) { opacity: 0.5; cursor: default; background: rgba(0,0,0,0.02); }
-    .obj-row, .rew-row {
+    /* ── Objective rows: single line ────── */
+    .obj-row {
       display: flex;
       gap: 6px;
       align-items: center;
       margin-bottom: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
-    .obj-row select, .rew-row select { width: 140px; flex-shrink: 0; }
-    .obj-row input, .rew-row input { width: 120px; }
-    .obj-row input[type="number"], .rew-row input[type="number"] { width: 70px; }
+    .obj-row select { width: 130px; flex-shrink: 0; height: 34px; }
+    .obj-row input { height: 34px; }
+    .obj-row input.obj-item { flex: 1; min-width: 60px; width: auto; }
+    .obj-row input[type="number"] { width: 58px; flex-shrink: 0; }
+    .obj-times { flex-shrink: 0; color: var(--text-dim); font-size: 0.82rem; }
+    .obj-row[data-type="reach_location"] { flex-wrap: wrap; }
+    .obj-row[data-type="reach_location"] .loc-fields {
+      display: flex; gap: 3px; align-items: center; flex-wrap: wrap;
+      width: 100%; margin-top: 2px;
+    }
+    .obj-row[data-type="reach_location"] .loc-fields input { width: 52px; flex-shrink: 0; }
+    .obj-row[data-type="reach_location"] .loc-fields span {
+      font-size: 0.7rem; color: var(--text-dim); flex-shrink: 0;
+    }
+
+    /* ── Reward rows: main line + optional icon line ─ */
+    .rew-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 14px;
+    }
+    .rew-main {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+    .rew-main select { width: 110px; flex-shrink: 0; height: 34px; }
+    .rew-main input { height: 34px; }
+    .rew-main input.rew-item-id,
+    .rew-main input.rew-cmd,
+    .rew-main input.rew-func { flex: 1; min-width: 60px; width: auto; }
+    .rew-main input[type="number"] { width: 58px; flex-shrink: 0; }
+    .rew-icon-row {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding-left: 10px;
+      margin-top: 2px;
+    }
+    .rew-icon-row.show { display: flex; }
+    .rew-icon-row span {
+      font-size: 0.7rem; color: var(--text-dim); flex-shrink: 0;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .rew-icon-row input { width: 160px; height: 30px; flex-shrink: 0; }
+
     .checkbox-grid { display: flex; flex-wrap: wrap; gap: 8px 16px; }
     .checkbox-grid label { display: flex; align-items: center; gap: 4px; font-size: 0.82rem; }
     #prereq-select { flex: 1; min-width: 200px; }
@@ -506,9 +552,6 @@
     }
     .btn-add:hover { background: rgba(59,130,196,0.08); }
     .btn-add:disabled { opacity: 0.4; cursor: default; }
-    .rew-icon-wrap { display: none; }
-    .rew-icon-wrap.show { display: inline; }
-    .rew-icon-wrap input { width: 100px !important; }
     .btn-icon-toggle {
       background: rgba(255,255,255,0.6);
       border: 1px solid var(--border);
@@ -551,6 +594,22 @@
     }
     .btn-raw:hover { background: rgba(255,255,255,0.85); color: var(--text); border-color: var(--accent); }
 
+    .btn-del-quest {
+      background: none;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-right: auto;
+    }
+    .btn-del-quest:hover {
+      background: rgba(209,67,67,0.1);
+      color: #e05a5a;
+    }
+
     .empty-state {
       color: var(--text-dim);
       font-size: 0.9rem;
@@ -578,18 +637,26 @@
       #editor-area { padding: 12px; }
       #editor-area textarea { min-height: 300px; font-size: 13px; }
       header { backdrop-filter: blur(16px); }
-      .obj-row, .rew-row { flex-direction: column; align-items: stretch; }
-      .obj-row select, .rew-row select { width: 100%; }
+      .obj-row { flex-direction: column; align-items: stretch; }
+      .obj-row select { width: 100%; }
+      .obj-row[data-type="reach_location"] .loc-fields { width: 100%; }
+      .rew-row { margin-bottom: 12px; }
+      .rew-main { flex-direction: column; align-items: stretch; }
+      .rew-main select { width: 100%; }
+      .rew-main input.rew-item-id,
+      .rew-main input.rew-cmd,
+      .rew-main input.rew-func { width: 100%; }
+      .rew-icon-row input { width: 100%; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Surez's Quest Editor</h1>
+  <h1><span data-i18n="app.title">Surez's Quest Editor</span></h1>
   <nav>
-    <button id="tab-quests" class="active" onclick="switchTab('quests')">Quests</button>
-    <button id="tab-npcs" onclick="switchTab('npcs')">NPCs</button>
+    <button id="tab-quests" class="active" onclick="switchTab('quests')" data-i18n="tab.quests">Quests</button>
+    <button id="tab-npcs" onclick="switchTab('npcs')" data-i18n="tab.npcs">NPCs</button>
   </nav>
 </header>
 
@@ -599,15 +666,15 @@
   <!-- Left: Quest Line Sidebar -->
   <aside id="questline-sidebar" class="sidebar">
     <div id="questline-list"></div>
-    <button class="ql-new-btn" id="ql-new-btn">+ New Quest Line</button>
+    <button class="ql-new-btn" id="ql-new-btn" data-i18n="ql.new">+ New Quest Line</button>
   </aside>
 
   <!-- Center: Mindmap -->
   <div id="mindmap-container">
     <div id="mindmap-toolbar">
       <span class="tl-name" id="tl-current-name">Default</span>
-      <button id="tl-add-quest-btn" title="New Quest">+</button>
-      <button id="tl-fit-btn">Fit</button>
+      <button id="tl-add-quest-btn" data-i18n-title="toolbar.new_quest">+</button>
+      <button id="tl-fit-btn" data-i18n="toolbar.fit">Fit</button>
     </div>
     <div id="mindmap-canvas-wrap">
       <canvas id="mindmap-canvas"></canvas>
@@ -617,16 +684,17 @@
   <!-- Right: Quest Editor -->
   <aside id="quest-editor" class="sidebar">
     <div class="editor-header" id="editor-header">
-      <span class="editor-title" id="editor-title">Quest Editor</span>
-      <button class="editor-close" id="editor-close">&times;</button>
+      <span class="editor-title" id="editor-title" data-i18n="editor.title">Quest Editor</span>
+      <button class="editor-close" id="editor-close" data-i18n-title="btn.close">&times;</button>
     </div>
     <div class="editor-body" id="editor-body">
-      <p class="empty-state">Click a quest node to edit.</p>
+      <p class="empty-state" data-i18n="editor.empty">Click a quest node to edit.</p>
     </div>
     <div class="editor-footer" id="editor-footer" style="display:none">
-      <button class="btn-raw" id="editor-raw">Raw JSON</button>
+      <button class="btn-del-quest" id="editor-delete" data-i18n="btn.delete">Delete</button>
+      <button class="btn-raw" id="editor-raw" data-i18n="btn.raw_json">Raw JSON</button>
       <span class="save-msg" id="editor-save-msg"></span>
-      <button class="btn-save" id="editor-save">Save</button>
+      <button class="btn-save" id="editor-save" data-i18n="btn.save">Save</button>
     </div>
   </aside>
 
@@ -636,13 +704,36 @@
 <div id="tab-npcs-content" class="tab-content">
   <aside id="sidebar" class="sidebar"></aside>
   <main id="editor-area">
-    <p class="empty-state">Select an NPC from the sidebar to edit.</p>
+    <p class="empty-state" data-i18n="msg.select_npc">Select an NPC from the sidebar to edit.</p>
   </main>
 </div>
 
+<script src="/pinyin-pro.min.js"></script>
+<script src="/i18n.js"></script>
 <script src="/mindmap.js"></script>
 <script src="/questline.js"></script>
 <script src="/app.js"></script>
 <script src="/forms.js"></script>
+<script>
+  (function apply() {
+    if (typeof I18n === 'undefined' || !I18n.ready()) {
+      setTimeout(apply, 50);
+      return;
+    }
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n');
+      var text = I18n.t(key);
+      if (text !== key) el.textContent = text;
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n-title');
+      var text = I18n.t(key);
+      if (text !== key) el.title = text;
+    });
+    var title = I18n.t('app.title');
+    if (title !== 'app.title') document.title = title;
+    document.documentElement.lang = I18n.lang();
+  })();
+</script>
 </body>
 </html>

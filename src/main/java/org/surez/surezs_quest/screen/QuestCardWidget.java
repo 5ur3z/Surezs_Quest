@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import org.surez.surezs_quest.Translation;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.surez.surezs_quest.api.quest.Quest;
 import org.surez.surezs_quest.api.quest.QuestObjective;
@@ -112,9 +113,9 @@ public class QuestCardWidget {
         gfx.fill(x, y, x + w, y + h, BG_COLLAPSED);
         gfx.fill(x, y, x + w, y + 1, ACCENT_COLOR);
 
-        gfx.drawString(font, quest.id().getPath(), x + PAD, y + 6, 0xFF_DDDDDD);
+        gfx.drawString(font, ClientQuestData.getName(quest.id()), x + PAD, y + 6, 0xFF_DDDDDD);
 
-        String status = rewardDone ? Component.translatable("surezs_quest.status.completed").getString() : declined ? Component.translatable("surezs_quest.status.declined").getString() : completed ? Component.translatable("surezs_quest.status.claimable").getString() : accepted ? Component.translatable("surezs_quest.status.in_progress").getString() : Component.translatable("surezs_quest.status.available").getString();
+        String status = rewardDone ? Translation.tr("surezs_quest.status.completed").getString() : declined ? Translation.tr("surezs_quest.status.declined").getString() : completed ? Translation.tr("surezs_quest.status.claimable").getString() : accepted ? Translation.tr("surezs_quest.status.in_progress").getString() : Translation.tr("surezs_quest.status.available").getString();
         if (!status.isEmpty()) {
             int sc = rewardDone ? 0xFF_888888 : declined ? 0xFF_CC4444 : completed ? 0xFF_FFD700 : accepted ? 0xFF_88AAFF : 0xFF_FF8844;
             gfx.drawString(font, status, x + w - font.width(status) - PAD - 4, y + 6, sc);
@@ -145,8 +146,8 @@ public class QuestCardWidget {
         gfx.fill(x, y, x + w, y + 1, ACCENT_COLOR);
 
         // ── title bar ───────────────────────────────────────────────────
-        gfx.drawString(font, quest.id().getPath(), x + PAD, cy + 6, 0xFF_FFD700);
-        String status = rewardDone ? Component.translatable("surezs_quest.status.completed").getString() : declined ? Component.translatable("surezs_quest.status.declined").getString() : completed ? Component.translatable("surezs_quest.status.claimable").getString() : accepted ? Component.translatable("surezs_quest.status.in_progress").getString() : Component.translatable("surezs_quest.status.available").getString();
+        gfx.drawString(font, ClientQuestData.getName(quest.id()), x + PAD, cy + 6, 0xFF_FFD700);
+        String status = rewardDone ? Translation.tr("surezs_quest.status.completed").getString() : declined ? Translation.tr("surezs_quest.status.declined").getString() : completed ? Translation.tr("surezs_quest.status.claimable").getString() : accepted ? Translation.tr("surezs_quest.status.in_progress").getString() : Translation.tr("surezs_quest.status.available").getString();
         if (!status.isEmpty()) {
             int sc = rewardDone ? 0xFF_888888 : declined ? 0xFF_CC4444 : completed ? 0xFF_FFD700 : accepted ? 0xFF_88AAFF : 0xFF_FF8844;
             gfx.drawString(font, status, x + w - font.width(status) - PAD - 4, cy + 6, sc);
@@ -198,7 +199,7 @@ public class QuestCardWidget {
             // calculate layout
             int availW = w - PAD * 2 - 12;
             int rowH = 24;
-            int rowY = cy + PAD + 18; // below Component.translatable("surezs_quest.label.rewards").getString() label
+            int rowY = cy + PAD + 18; // below Translation.tr("surezs_quest.label.rewards").getString() label
             int cellX = x + PAD + 6;
             int rows = 1;
             for (var ri : rewardItemList) {
@@ -210,7 +211,7 @@ public class QuestCardWidget {
             int boxH = PAD + 10 + 8 + rows * rowH + PAD; // label + gap + cells
             gfx.fill(x + PAD, cy, x + w - PAD, cy + boxH, BG_REWARD_BOX);
             gfx.fill(x + PAD, cy, x + PAD + 1, cy + boxH, 0xFF_886622);
-            gfx.drawString(font, Component.translatable("surezs_quest.label.rewards").getString(), x + PAD + 6, cy + PAD + 2, 0xFF_FFD700);
+            gfx.drawString(font, Translation.tr("surezs_quest.label.rewards").getString(), x + PAD + 6, cy + PAD + 2, 0xFF_FFD700);
 
             cellX = x + PAD + 6;
             rowY = cy + PAD + 18;
@@ -260,21 +261,21 @@ public class QuestCardWidget {
                     int acceptHov = isHover && hoveredButton == 1 ? BTN_ACCEPT_HOV : BTN_ACCEPT;
                     int declineHov = isHover && hoveredButton == 2 ? BTN_DECLINE_HOV : BTN_DECLINE;
                     btnX -= BTN_W; gfx.fill(btnX, btnY, btnX + BTN_W, btnY + BTN_H, acceptHov);
-                    gfx.drawCenteredString(font, Component.translatable("surezs_quest.button.accept").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
+                    gfx.drawCenteredString(font, Translation.tr("surezs_quest.button.accept").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
                     if (quest.canReject()) {
                         btnX -= BTN_W + 4; gfx.fill(btnX, btnY, btnX + BTN_W, btnY + BTN_H, declineHov);
-                        gfx.drawCenteredString(font, Component.translatable("surezs_quest.button.decline").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
+                        gfx.drawCenteredString(font, Translation.tr("surezs_quest.button.decline").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
                     }
                 }
                 if (accepted && !completed && quest.objectives().stream().anyMatch(o -> o instanceof QuestObjective.SubmitItems)) {
                     int submitHov = isHover && hoveredButton == 3 ? BTN_SUBMIT_HOV : BTN_SUBMIT;
                     btnX -= BTN_W; gfx.fill(btnX, btnY, btnX + BTN_W, btnY + BTN_H, submitHov);
-                    gfx.drawCenteredString(font, Component.translatable("surezs_quest.button.submit").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
+                    gfx.drawCenteredString(font, Translation.tr("surezs_quest.button.submit").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
                 }
                 if (completed && !rewardDone) {
                     int claimHov = isHover && hoveredButton == 4 ? BTN_CLAIM_HOV : BTN_CLAIM;
                     btnX -= BTN_W; gfx.fill(btnX, btnY, btnX + BTN_W, btnY + BTN_H, claimHov);
-                    gfx.drawCenteredString(font, Component.translatable("surezs_quest.button.claim").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
+                    gfx.drawCenteredString(font, Translation.tr("surezs_quest.button.claim").getString(), btnX + BTN_W / 2, btnY + 3, 0xFFFFFF);
                 }
             }
         }
@@ -420,10 +421,10 @@ public class QuestCardWidget {
     private static String shortName(QuestObjective obj) {
         return switch (obj) {
             case QuestObjective.FindItems f -> f.item().getPath();
-            case QuestObjective.SubmitItems s -> s.item().getPath() + Component.translatable("surezs_quest.objective.submit_suffix").getString();
+            case QuestObjective.SubmitItems s -> s.item().getPath() + Translation.tr("surezs_quest.objective.submit_suffix").getString();
             case QuestObjective.KillEntity k -> k.entityType().getPath();
             case QuestObjective.CraftItem c -> c.item().getPath();
-            case QuestObjective.ReachLocation r -> Component.translatable("surezs_quest.objective.reach_location").getString();
+            case QuestObjective.ReachLocation r -> Translation.tr("surezs_quest.objective.reach_location").getString();
         };
     }
 

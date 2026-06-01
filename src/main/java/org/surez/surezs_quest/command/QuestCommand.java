@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.loading.FMLPaths;
 import org.surez.surezs_quest.Config;
+import org.surez.surezs_quest.Translation;
 import org.surez.surezs_quest.Surezs_quest;
 import org.surez.surezs_quest.api.quest.Quest;
 import org.surez.surezs_quest.data.DataLoaders;
@@ -99,7 +100,7 @@ public class QuestCommand {
 
     private static int giveQuest(CommandContext<CommandSourceStack> ctx, ServerPlayer player, ResourceLocation questId) {
         if (!DataLoaders.QUESTS.exists(questId)) {
-            ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.quest_not_found", questId.toString()));
+            ctx.getSource().sendFailure(Translation.tr("surezs_quest.command.quest_not_found", questId.toString()));
             return 0;
         }
         Quest quest = DataLoaders.QUESTS.get(questId);
@@ -112,21 +113,21 @@ public class QuestCommand {
         } else {
             var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
             if (data == null) {
-                ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.player_data_unavailable"));
+                ctx.getSource().sendFailure(Translation.tr("surezs_quest.command.player_data_unavailable"));
                 return 0;
             }
             data.accept(questId);
             QuestDataManager.INSTANCE.savePlayer(player.getUUID());
         }
 
-        ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.give_quest", questId.toString(), player.getName().getString()), true);
+        ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.give_quest", questId.toString(), player.getName().getString()), true);
         return 1;
     }
 
     private static int completeQuest(CommandContext<CommandSourceStack> ctx, ServerPlayer player, ResourceLocation questId) {
         Quest quest = DataLoaders.QUESTS.get(questId);
         if (quest == null) {
-            ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.quest_not_found", questId.toString()));
+            ctx.getSource().sendFailure(Translation.tr("surezs_quest.command.quest_not_found", questId.toString()));
             return 0;
         }
 
@@ -139,13 +140,13 @@ public class QuestCommand {
         } else {
             var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
             if (data == null) {
-                ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.player_data_unavailable"));
+                ctx.getSource().sendFailure(Translation.tr("surezs_quest.command.player_data_unavailable"));
                 return 0;
             }
             QuestProgressManager.forceComplete(player, data, quest);
         }
 
-        ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.complete_quest", questId.toString(), player.getName().getString()), true);
+        ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.complete_quest", questId.toString(), player.getName().getString()), true);
         return 1;
     }
 
@@ -162,13 +163,13 @@ public class QuestCommand {
                 entry.contributors().remove(player.getUUID());
             }
             QuestDataManager.INSTANCE.saveServer();
-            ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.reset_quest", player.getName().getString(), questId.toString()), true);
+            ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.reset_quest", player.getName().getString(), questId.toString()), true);
             return 1;
         }
 
         var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
         if (data == null) {
-            ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.player_data_unavailable"));
+            ctx.getSource().sendFailure(Translation.tr("surezs_quest.command.player_data_unavailable"));
             return 0;
         }
         clearQuestData(data, questId);
@@ -183,8 +184,8 @@ public class QuestCommand {
         // full refresh of client state after reset
         NetworkHandler.refreshQuestScreen(player);
 
-        String msg = Component.translatable("surezs_quest.command.reset_quest", player.getName().getString(), questId.toString()).getString();
-        if (!cascaded.isEmpty()) msg += Component.translatable("surezs_quest.command.cascade_reset", String.join(", ", cascaded)).getString();
+        String msg = Translation.tr("surezs_quest.command.reset_quest", player.getName().getString(), questId.toString()).getString();
+        if (!cascaded.isEmpty()) msg += Translation.tr("surezs_quest.command.cascade_reset", String.join(", ", cascaded)).getString();
         final String finalMsg = msg;
         ctx.getSource().sendSuccess(() -> Component.literal(finalMsg), true);
         return 1;
@@ -208,12 +209,12 @@ public class QuestCommand {
     private static int listQuests(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
         var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
         if (data == null) {
-            ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.player_data_unavailable"));
+            ctx.getSource().sendFailure(Translation.tr("surezs_quest.command.player_data_unavailable"));
             return 0;
         }
-        ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.list_header", player.getName().getString()), false);
-        ctx.getSource().sendSuccess(() -> Component.literal(Component.translatable("surezs_quest.command.list_accepted").getString() + data.acceptedQuests()), false);
-        ctx.getSource().sendSuccess(() -> Component.literal(Component.translatable("surezs_quest.command.list_declined").getString() + data.declinedQuests()), false);
+        ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.list_header", player.getName().getString()), false);
+        ctx.getSource().sendSuccess(() -> Component.literal(Translation.tr("surezs_quest.command.list_accepted").getString() + data.acceptedQuests()), false);
+        ctx.getSource().sendSuccess(() -> Component.literal(Translation.tr("surezs_quest.command.list_declined").getString() + data.declinedQuests()), false);
 
         // show server quest state
         var serverData = QuestDataManager.INSTANCE.getServerData();
@@ -224,32 +225,33 @@ public class QuestCommand {
             if (entry.completedPlayers().contains(player.getUUID())) serverClaimed.add(qid.toString());
         });
         if (!serverAccepted.isEmpty())
-            ctx.getSource().sendSuccess(() -> Component.literal(Component.translatable("surezs_quest.command.list_server_accepted").getString() + serverAccepted), false);
+            ctx.getSource().sendSuccess(() -> Component.literal(Translation.tr("surezs_quest.command.list_server_accepted").getString() + serverAccepted), false);
         if (!serverClaimed.isEmpty())
-            ctx.getSource().sendSuccess(() -> Component.literal(Component.translatable("surezs_quest.command.list_server_claimed").getString() + serverClaimed), false);
+            ctx.getSource().sendSuccess(() -> Component.literal(Translation.tr("surezs_quest.command.list_server_claimed").getString() + serverClaimed), false);
         return 1;
     }
 
     private static int reloadData(CommandContext<CommandSourceStack> ctx) {
         DataLoaders.reload();
-        ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.reload_ok"), true);
+        Translation.reload();
+        ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.reload_ok"), true);
         return 1;
     }
 
     private static int warnResetAll(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
-        ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.reset_warn", player.getName().getString(), player.getName().getString()), false);
+        ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.reset_warn", player.getName().getString(), player.getName().getString()), false);
         return 0;
     }
 
     private static int resetAllQuests(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
         var data = QuestDataManager.INSTANCE.getPlayerData(player.getUUID());
         if (data == null) {
-            ctx.getSource().sendFailure(Component.translatable("surezs_quest.command.player_data_unavailable"));
+            ctx.getSource().sendFailure(Translation.tr("surezs_quest.command.player_data_unavailable"));
             return 0;
         }
         data.clear();
         QuestDataManager.INSTANCE.savePlayer(player.getUUID());
-        ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.reset_all_ok", player.getName().getString()), true);
+        ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.reset_all_ok", player.getName().getString()), true);
         return 1;
     }
 
@@ -257,7 +259,7 @@ public class QuestCommand {
         var serverData = QuestDataManager.INSTANCE.getServerData();
         serverData.resetProgress(questId);
         QuestDataManager.INSTANCE.saveServer();
-        ctx.getSource().sendSuccess(() -> Component.translatable("surezs_quest.command.server_reset_ok", questId.toString()), true);
+        ctx.getSource().sendSuccess(() -> Translation.tr("surezs_quest.command.server_reset_ok", questId.toString()), true);
         return 1;
     }
 
@@ -274,7 +276,8 @@ public class QuestCommand {
         try {
             Surezs_quest.WEB_SERVER.start(actualPort,
                 configDir.resolve("quests"),
-                configDir.resolve("npcs"));
+                configDir.resolve("npcs"),
+                configDir);
             int p = actualPort;
             ctx.getSource().sendSuccess(() ->
                 Component.literal("Web editor started at http://localhost:" + p), true);

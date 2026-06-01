@@ -44,7 +44,7 @@ public class NPCSidebarWidget {
             NPCAvatarRenderer.render(gfx, npcId, x + 6, entryY + 4);
 
             // name
-            String name = npcId.getPath();
+            String name = ClientQuestDataCache.INSTANCE.getNpcName(npcId);
             gfx.drawString(mc().font, name, x + 24, entryY + 6, 0xFFFFFF);
 
             // unread dot
