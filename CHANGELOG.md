@@ -8,6 +8,42 @@
 
 ---
 
+## [0.10.0] — 2026-06-01
+
+### 新增
+- **NPC 显示名称 (`name` 字段)**：`NPC` record 新增必填 `String name` 字段（`fieldOf` + `.validate()` 拒绝空名）。Codec 强制校验，缺少或空 `name` 的 NPC 跳过加载并记录错误日志。网络管线发送 `npc.name()`，`NPCSidebarWidget` 和 `DialoguePopup` 均使用 `getNpcName()` 渲染。Web 编辑器侧栏和面包屑显示 `name` 而非 `id`
+- **NPC ID 不可变**：NPC 创建后 `id` 锁定。Web 表单中 ID 为只读，后端 `NpcApiHandler.handlePut()` 校验 —— 已存在的 NPC 若 body 中 `id` 与文件不一致则返回 400 `"NPC id is immutable once created"`
+- **任务删除按钮**：Quest 编辑器 footer 新增红色 `Delete` 按钮。`DELETE /api/quests/{id}` 端点删除 quest JSON 文件，前端删除后逐个 quest line 清理引用。点击 Delete 时禁用 Save 按钮防止竞态
+- **Web 编辑器 i18n 国际化**：Web 编辑器全面支持中英文切换。新增 `web/lang/en_us.json` 和 `zh_cn.json`（~85 条翻译键）、`i18n.js` 翻译函数库、`LangApiHandler`（`GET /api/lang` 端点从 classpath 读取翻译 JSON）。所有静态 HTML 通过 `data-i18n` 属性填充，`forms.js` / `app.js` 中 ~60 处硬编码英文字符串替换为 `I18n.t()`。`<title>` 和 `<html lang>` 动态跟随语言
+- **Config 语言设置 (`language` 字段)**：`config.json` 新增 `"language"` 字段（默认 `"en_us"`）。Web 编辑器和游戏内 UI 均遵循此值，不再依赖 MC 客户端语言或玩家登录事件。修改后 `/quest reload` 使游戏内 UI 同步生效，浏览器刷新使 Web 编辑生效
+- **`Translation` 工具类**：游戏内 UI 翻译统一入口。`Translation.reload()` 根据 `Config.INSTANCE.language()` 从 classpath 加载 `assets/surezs_quest/lang/{lang}.json`，`Translation.tr(key, args...)` 返回 `Component`，`Translation.get(key)` 返回原始字符串。全项目 ~40 处 `Component.translatable("surezs_quest.*")` 替换为 `Translation.tr/get`
+
+### 变更
+- **Quest editor form 布局优化**：Objective rows 改为 `flex-wrap: nowrap` 紧凑单行（类型下拉 + 物品 ID + × + 数量 + 删除按钮），`reach_location` 类型独立换行展示坐标。Reward rows 改为双行结构 —— 首行主字段、第二行 icon 输入框（toggle 显隐），行间 `margin-bottom: 14px` 清晰分隔。× 分隔符从裸文本改为 `<span class="obj-times">&times;</span>`
+- **思维导图节点标签**：Quest 卡片标题从 `id` 改为优先显示 `name`（fallback `id`）。NPC 副标题从原始 `npc_id` 改为 NPC 的 `name`（前端缓存 `npcNameMap`，`layoutNodes()` 预解析透传）
+- **新建任务默认 `prerequisite_mode` 改为 `NONE`**：`DEFAULT_QUEST_TEMPLATE.prerequisite_mode` 从 `'ALL'` 改为 `'NONE'`，新建时 prereq 列表和添加按钮自动隐藏
+- **NPC 编辑界面 Raw JSON 切换修复**：toolbar（Save / Raw JSON 按钮）从 `#npc-form-wrap` 内移到外部 + textarea 下方，切换 Raw JSON 时按钮始终保持可见
+- **Config 移除 `PlayerLoggedInEvent` 语言捕获**：删除 `NetworkHandler.clientLocale` 存储字段、`getClientLocale()`、`onPlayerLogin()` 监听器及 `PlayerEvent` import，删除 `Surezs_quest` 中 `NeoForge.EVENT_BUS.register(NetworkHandler.class)`
+
+### 修复
+- **`formData` null 引用崩溃**：`saveForm()` 中 `typeof formData !== 'undefined'` 无法过滤 `null`（`typeof null === 'object'`），导致 `formData.id = newId` 抛出 `Cannot set properties of null`。改为 `formData != null`
+- **Delete 成功后按钮锁定残留**：成功路径未解锁 Save/Delete 按钮 → `closeQuestEditor()` 前加 `disabled = false`，`openQuestEditor()` 入口也复原 `disabled` 状态兜底
+- **Web i18n 前端时序竞态**：轮询脚本检查 `I18n.lang()` 立即通过（默认为 `'en_us'`），此时 `init()` fetch 未完成 → `_strings` 为空 → `I18n.t()` 全部返回 key 文本。引入 `_ready` 标志 + `I18n.ready()`，轮询等待初始化完成；填充时 `text !== key` 二次检查避免空翻译覆盖 HTML fallback
+- **LangApiHandler 类路径资源加载失败**：使用 `ClassLoader.getResourceAsStream("web/lang/...")` 在 NeoForge 环境不一致 → 改用 `Class.getResourceAsStream("/web/lang/...")` 与 `StaticFileHandler` 对齐
+- **Translation 类 try-with-resources 变量重复赋值**：fallback 逻辑中 `in` 在 try 声明后再赋值违反 effectively-final 约束 → 提取 `readResource()` 辅助方法
+
+### 文件
+- 新增 `web/lang/en_us.json`、`web/lang/zh_cn.json`
+- 新增 `web/i18n.js`、`web/LangApiHandler.java`
+- 新增 `Translation.java`
+- 修改 `api/npc/NPC.java`、`network/NetworkHandler.java`、`network/ClientNetworkHandler.java`、`Surezs_quest.java`、`Config.java`、`command/QuestCommand.java`
+- 修改 `screen/NPCSidebarWidget.java`、`screen/DialoguePopup.java`、`screen/QuestCardWidget.java`、`screen/QuestListPanel.java`、`screen/QuestScreen.java`、`screen/SubmitItemScreen.java`、`screen/NPCAvatarRenderer.java`
+- 修改 `web/NpcApiHandler.java`、`web/QuestApiHandler.java`、`web/QuestWebServer.java`
+- 修改 `resources/web/index.html`、`app.js`、`forms.js`、`mindmap.js`
+- 修改 `resources/data/surezs_quest/npcs/aleksei.json`、`run/config/surezs_quest/npcs/aleksei.json`、`run/config/surezs_quest/config.json`
+
+---
+
 ## [0.9.0] — 2026-05-31
 
 ### 新增
